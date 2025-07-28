@@ -17,15 +17,12 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContent {
-            PaymentAppTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Text(
-                        text = "Hello world!",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+        setContent(
+            content = {
+                PaymentAppTheme {
+                    PaymentAppNavigationGraph()
                 }
             }
-        }
+        ) 
     }
 }
