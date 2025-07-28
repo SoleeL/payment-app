@@ -1,1 +1,1 @@
-# payment-app
+# paymentapp
