@@ -7,9 +7,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
-
 @Composable
-fun DebitChangeCalculatorScreen() {
+fun TipSelectionScreen() {
     val functionName = Thread.currentThread().stackTrace
         .firstOrNull { it.methodName.contains("Screen") }?.methodName ?: "Unknown"
 

@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -28,32 +29,36 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.soleel.paymentapp.feature.salesprocess.screens.CashChangeCalculatorScreen
 import com.soleel.paymentapp.feature.salesprocess.screens.CreditInstallmentsSelectionScreen
-import com.soleel.paymentapp.feature.salesprocess.screens.DebitChangeCalculatorScreen
+import com.soleel.paymentapp.feature.salesprocess.screens.DebitChangeSelectionScreen
 import com.soleel.paymentapp.feature.salesprocess.screens.FailedSaleScreen
 import com.soleel.paymentapp.feature.salesprocess.screens.PaymentTypeSelectionScreen
 import com.soleel.paymentapp.feature.salesprocess.screens.PendingSaleScreen
 import com.soleel.paymentapp.feature.salesprocess.screens.RegisterSaleScreen
 import com.soleel.paymentapp.feature.salesprocess.screens.SuccessfulSaleScreen
+import com.soleel.paymentapp.feature.salesprocess.screens.TipSelectionScreen
 import kotlinx.serialization.Serializable
 
 
 @Serializable
-data class SalesProcessGraph(val amount: Int)
+data class SalesProcessGraph(val calculatorTotal: Float)
 
 fun NavGraphBuilder.salesProcessNavigationGraph(
     backToPrevious: () -> Unit
 ) {
     composable<SalesProcessGraph>(
         content = { backStackEntry ->
-            val amount: Int = backStackEntry.toRoute<SalesProcessGraph>().amount
+            val calculatorTotal: Float = backStackEntry.toRoute<SalesProcessGraph>().calculatorTotal
             val savedStateHandle: SavedStateHandle = backStackEntry.savedStateHandle
-            savedStateHandle["amount"] = amount
+            savedStateHandle["amount"] = calculatorTotal
             SalesProcessScreen(
                 backToPrevious = backToPrevious
             )
         }
     )
 }
+
+@Serializable
+object TipSelection
 
 @Serializable
 object PaymentTypeSelection
@@ -65,7 +70,7 @@ object CashChangeCalculator
 object CreditInstallmentsSelection
 
 @Serializable
-object DebitChangeCalculator
+object DebitChangeSelection
 
 @Serializable
 object RegisterSale
@@ -92,6 +97,7 @@ object QRDownloadVoucher // README: Puede ser un modal
 @Composable
 fun SalesProcessScreen(
     navHostController: NavHostController = rememberNavController(),
+    salesProcessViewModel: SalesProcessViewModel = hiltViewModel(),
     backToPrevious: () -> Unit
 ) {
     val currentDestination: NavDestination? = navHostController.currentBackStackEntryAsState()
@@ -143,12 +149,32 @@ fun SalesProcessScreen(
                 startDestination = PaymentTypeSelection,
                 modifier = Modifier.padding(paddingValues),
                 builder = {
+
+                    composable<TipSelection>(
+                        content = {
+                            TipSelectionScreen()
+                        }
+                    )
+
                     composable<PaymentTypeSelection>(
                         content = {
                             PaymentTypeSelectionScreen(
-                                whenSelectingCash = { navHostController.navigate(CashChangeCalculator) },
-                                whenSelectingDebit = { navHostController.navigate(CreditInstallmentsSelection) },
-                                whenSelectingCredit = { navHostController.navigate(DebitChangeCalculator) }
+                                salesProcessViewModel = salesProcessViewModel,
+                                whenSelectingCash = {
+                                    navHostController.navigate(
+                                        CashChangeCalculator
+                                    )
+                                },
+                                whenSelectingDebit = {
+                                    navHostController.navigate(
+                                        CreditInstallmentsSelection
+                                    )
+                                },
+                                whenSelectingCredit = {
+                                    navHostController.navigate(
+                                        DebitChangeSelection
+                                    )
+                                }
                             )
                         }
                     )
@@ -165,9 +191,9 @@ fun SalesProcessScreen(
                         }
                     )
 
-                    composable<DebitChangeCalculator>(
+                    composable<DebitChangeSelection>(
                         content = {
-                            DebitChangeCalculatorScreen()
+                            DebitChangeSelectionScreen()
                         }
                     )
 

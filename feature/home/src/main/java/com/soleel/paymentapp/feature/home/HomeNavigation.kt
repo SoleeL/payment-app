@@ -35,7 +35,7 @@ import kotlinx.serialization.Serializable
 object HomeGraph
 
 fun NavGraphBuilder.homeNavigationGraph(
-    navigateToSalesProcessGraph: (amount: Int) -> Unit
+    navigateToSalesProcessGraph: (calculatorTotal: Int) -> Unit
 ) {
     composable<HomeGraph> {
         HomeScreen(
