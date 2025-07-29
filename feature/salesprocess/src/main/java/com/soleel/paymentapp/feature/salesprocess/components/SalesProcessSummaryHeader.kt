@@ -38,9 +38,9 @@ private fun SalesProcessSummaryLongPreview() {
                         calculatorTotal = 2000f,
                         tipTotal = 200f,
                         paymentMethodSelected = PaymentMethodEnum.CREDIT,
-//                        cashChangeSelected = 10000f,
+                        cashChangeSelected = 10000f,
                         creditInstalmentsSelected = 0,
-//                        debitChangeSelected = 5000f
+                        debitChangeSelected = 5000f
                     )
                 }
             )
@@ -110,7 +110,7 @@ fun SalesProcessSummaryHeader(
                                         )
                                     }
                                 ),
-                                style = MaterialTheme.typography.headlineLarge,
+                                style = MaterialTheme.typography.displaySmall,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                             )
@@ -137,6 +137,7 @@ fun SalesProcessSummaryHeader(
                                     )
                                 }
                             ),
+                            style = MaterialTheme.typography.bodyLarge,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
@@ -162,6 +163,7 @@ fun SalesProcessSummaryHeader(
                                     )
                                 }
                             ),
+                            style = MaterialTheme.typography.bodyLarge,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
@@ -189,6 +191,7 @@ fun SalesProcessSummaryHeader(
                                     )
                                 }
                             ),
+                            style = MaterialTheme.typography.bodyLarge,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
@@ -214,6 +217,7 @@ fun SalesProcessSummaryHeader(
                                     )
                                 }
                             ),
+                            style = MaterialTheme.typography.bodyLarge,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
@@ -246,6 +250,7 @@ fun SalesProcessSummaryHeader(
                                     append(cashChangeSelectedAmountCLP)
                                 }
                             },
+                            style = MaterialTheme.typography.bodyLarge,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
@@ -264,6 +269,7 @@ fun SalesProcessSummaryHeader(
                                     append(cashGivenAmountCLP)
                                 }
                             },
+                            style = MaterialTheme.typography.bodyLarge,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
@@ -293,6 +299,7 @@ fun SalesProcessSummaryHeader(
                                     )
                                 }
                             ),
+                            style = MaterialTheme.typography.bodyLarge,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )

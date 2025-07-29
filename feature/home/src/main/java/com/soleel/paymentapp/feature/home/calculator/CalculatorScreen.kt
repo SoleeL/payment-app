@@ -68,7 +68,7 @@ fun CalculatorScreenShortPreview() {
 @Composable
 fun CalculatorScreen(
     calculatorViewModel: CalculatorViewModel = hiltViewModel(),
-    navigateToSalesProcessGraph: (amount: Int) -> Unit
+    navigateToSalesProcessGraph: (calculatorTotal: Float) -> Unit
 ) {
     val currentItemUi: CalculatorUiModel = calculatorViewModel.currentCalculatorUiModel
 

@@ -56,7 +56,7 @@ fun PaymentAppNavigationGraph() {
             )
 
             homeNavigationGraph(
-                navigateToSalesProcessGraph = { calculatorTotal: Int ->
+                navigateToSalesProcessGraph = { calculatorTotal: Float ->
                     navHostController.navigate(SalesProcessGraph(calculatorTotal))
                 }
             )
