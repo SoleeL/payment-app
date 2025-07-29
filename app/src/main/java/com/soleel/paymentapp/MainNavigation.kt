@@ -24,6 +24,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.soleel.paymentapp.feature.home.HomeGraph
 import com.soleel.paymentapp.feature.home.homeNavigationGraph
+import com.soleel.paymentapp.feature.salesprocess.salesProcessNavigationGraph
+import com.soleel.paymentapp.feature.transactionprocess.transactionProcessNavigationGraph
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -53,6 +55,13 @@ fun PaymentAppNavigationGraph() {
             )
 
             homeNavigationGraph()
+
+            salesProcessNavigationGraph(
+                amount = 2000,
+                backToPrevious = { navHostController.popBackStack() }
+            )
+
+            transactionProcessNavigationGraph()
         }
     )
 }
@@ -63,15 +72,16 @@ fun SplashScreen() {
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White),
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            painter = painterResource(id = R.drawable.ic_launcher_foreground),
-            contentDescription = null,
-            tint = Color.Unspecified,
-            modifier = Modifier.size(100.dp)
-        )
-    }
+        contentAlignment = Alignment.Center,
+        content = {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                contentDescription = null,
+                tint = Color.Unspecified,
+                modifier = Modifier.size(100.dp)
+            )
+        }
+    )
 }
 
 @Composable
@@ -82,22 +92,23 @@ fun ErrorScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = "Algo salió mal",
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.error
-            )
+        contentAlignment = Alignment.Center,
+        content = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = "Algo salió mal",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.error
+                )
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            onRetry?.let {
-                Button(onClick = it) {
-                    Text("Reintentar")
+                onRetry?.let {
+                    Button(onClick = it) {
+                        Text("Reintentar")
+                    }
                 }
             }
         }
-    }
+    )
 }

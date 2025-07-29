@@ -1,6 +1,5 @@
 package com.soleel.paymentapp.feature.home
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -12,7 +11,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -24,13 +22,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navOptions
-import kotlinx.serialization.Serializable
 import com.soleel.paymentapp.core.ui.R
 import com.soleel.paymentapp.feature.home.bills.BillsScreen
 import com.soleel.paymentapp.feature.home.calculator.CalculatorScreen
 import com.soleel.paymentapp.feature.home.catalog.CatalogScreen
 import com.soleel.paymentapp.feature.home.profile.ProfileScreen
 import com.soleel.paymentapp.feature.home.sales.SalesScreen
+import kotlinx.serialization.Serializable
 
 
 @Serializable

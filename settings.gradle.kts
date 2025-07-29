@@ -24,3 +24,5 @@ include(":core:navigation")
 include(":core:ui")
 
 include(":feature:home")
+include(":feature:salesprocess")
+include(":feature:transactionprocess")
