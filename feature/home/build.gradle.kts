@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.paymentapp.android.library)
     alias(libs.plugins.paymentapp.android.library.compose)
+    alias(libs.plugins.paymentapp.android.hilt)
 }
 
 android {

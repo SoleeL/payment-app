@@ -24,6 +24,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.soleel.paymentapp.feature.home.HomeGraph
 import com.soleel.paymentapp.feature.home.homeNavigationGraph
+import com.soleel.paymentapp.feature.salesprocess.SalesProcessGraph
 import com.soleel.paymentapp.feature.salesprocess.salesProcessNavigationGraph
 import com.soleel.paymentapp.feature.transactionprocess.transactionProcessNavigationGraph
 import kotlinx.serialization.Serializable
@@ -54,10 +55,13 @@ fun PaymentAppNavigationGraph() {
                 }
             )
 
-            homeNavigationGraph()
+            homeNavigationGraph(
+                navigateToSalesProcessGraph = { amount: Int ->
+                    navHostController.navigate(SalesProcessGraph(amount))
+                }
+            )
 
             salesProcessNavigationGraph(
-                amount = 2000,
                 backToPrevious = { navHostController.popBackStack() }
             )
 
