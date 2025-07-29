@@ -34,9 +34,13 @@ import kotlinx.serialization.Serializable
 @Serializable
 object HomeGraph
 
-fun NavGraphBuilder.homeNavigationGraph() {
+fun NavGraphBuilder.homeNavigationGraph(
+    navigateToSalesProcessGraph: (amount: Int) -> Unit
+) {
     composable<HomeGraph> {
-        HomeScreen()
+        HomeScreen(
+            navigateToSalesProcessGraph = navigateToSalesProcessGraph
+        )
     }
 }
 
@@ -81,7 +85,8 @@ sealed class HomeTopBarScreens<T>(val name: String, val icon: Int, val route: T)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    navHostController: NavHostController = rememberNavController()
+    navHostController: NavHostController = rememberNavController(),
+    navigateToSalesProcessGraph: (amount: Int) -> Unit
 ) {
     val currentDestination: NavDestination? = navHostController.currentBackStackEntryAsState()
         .value?.destination
@@ -158,7 +163,9 @@ fun HomeScreen(
                 builder = {
                     composable<HomeTopBarScreens.Calculator>(
                         content = {
-                            CalculatorScreen()
+                            CalculatorScreen(
+                                navigateToSalesProcessGraph = navigateToSalesProcessGraph
+                            )
                         }
                     )
 

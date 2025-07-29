@@ -25,6 +25,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import com.soleel.paymentapp.feature.salesprocess.screens.CashChangeCalculatorScreen
 import com.soleel.paymentapp.feature.salesprocess.screens.CreditInstallmentsSelectionScreen
 import com.soleel.paymentapp.feature.salesprocess.screens.DebitChangeCalculatorScreen
@@ -37,14 +38,14 @@ import kotlinx.serialization.Serializable
 
 
 @Serializable
-object SalesProcessGraph
+data class SalesProcessGraph(val amount: Int)
 
 fun NavGraphBuilder.salesProcessNavigationGraph(
-    amount: Int,
     backToPrevious: () -> Unit
 ) {
     composable<SalesProcessGraph>(
         content = { backStackEntry ->
+            val amount: Int = backStackEntry.toRoute<SalesProcessGraph>().amount
             val savedStateHandle: SavedStateHandle = backStackEntry.savedStateHandle
             savedStateHandle["amount"] = amount
             SalesProcessScreen(
