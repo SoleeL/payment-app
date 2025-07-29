@@ -11,21 +11,20 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.soleel.paymentapp.ui.theme.PaymentAppTheme
+import com.soleel.paymentapp.core.ui.theme.PaymentAppTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContent {
-            PaymentAppTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Text(
-                        text = "Hello world!",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+        setContent(
+            content = {
+                PaymentAppTheme(
+                    content = {
+                        PaymentAppNavigationGraph()
+                    }
+                )
             }
-        }
+        )
     }
 }

@@ -1,6 +1,5 @@
-package com.soleel.paymentapp.ui.theme
+package com.soleel.paymentapp.core.ui.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme

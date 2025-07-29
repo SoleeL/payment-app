@@ -8,4 +8,10 @@ android {
     namespace = "com.soleel.paymentapp"
 }
 
-dependencies { }
+dependencies {
+    implementation(projects.core.ui)
+
+    implementation(projects.feature.home)
+    implementation(projects.feature.salesprocess)
+    implementation(projects.feature.transactionprocess)
+}
