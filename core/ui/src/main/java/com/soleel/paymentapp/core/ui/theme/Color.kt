@@ -1,4 +1,4 @@
-package com.soleel.paymentapp.ui.theme
+package com.soleel.paymentapp.core.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

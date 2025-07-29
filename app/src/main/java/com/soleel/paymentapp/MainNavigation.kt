@@ -22,6 +22,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.soleel.paymentapp.feature.home.HomeGraph
+import com.soleel.paymentapp.feature.home.homeNavigationGraph
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -29,9 +31,6 @@ object Loading
 
 @Serializable
 object Error
-
-@Serializable
-object HomeGraph
 
 @Composable
 fun PaymentAppNavigationGraph() {
@@ -53,11 +52,7 @@ fun PaymentAppNavigationGraph() {
                 }
             )
 
-            composable<Error>(
-                content = {
-                    TODO()
-                }
-            )
+            homeNavigationGraph()
         }
     )
 }
