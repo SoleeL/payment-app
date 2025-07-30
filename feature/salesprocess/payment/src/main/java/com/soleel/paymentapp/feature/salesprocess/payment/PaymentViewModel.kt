@@ -19,6 +19,9 @@ import com.soleel.paymentapp.domain.payment.IRequestValidationPaymentUseCase
 import com.soleel.paymentapp.domain.payment.ISavePaymentUseCase
 import com.soleel.paymentapp.domain.reading.IContactReadingUseCase
 import com.soleel.paymentapp.domain.reading.IContactlessReadingUseCase
+import com.soleel.paymentapp.domain.reading.InterfaceFallbackException
+import com.soleel.paymentapp.domain.reading.InvalidCardException
+import com.soleel.paymentapp.domain.reading.PaymentRejectedException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -27,7 +30,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -47,14 +49,16 @@ sealed interface ReadingStepUiState {
 sealed class ReadingErrorType {
     data object InterfaceFallback : ReadingErrorType()
     data object InvalidCard : ReadingErrorType()
+    data object PaymentRejected : ReadingErrorType()
     data class Other(val message: String?) : ReadingErrorType()
 }
 
 fun ReadingUiState.Failure.getErrorType(): ReadingErrorType {
-    return when (this.errorCode) {
-        "EMVCO_FALLBACK" -> ReadingErrorType.InterfaceFallback
-        "INVALID_CARD" -> ReadingErrorType.InvalidCard
-        else -> ReadingErrorType.Other(this.errorMessage)
+    return when (errorCode) {
+        InterfaceFallbackException::class.simpleName -> ReadingErrorType.InterfaceFallback
+        InvalidCardException::class.simpleName -> ReadingErrorType.InvalidCard
+        PaymentRejectedException::class.simpleName -> ReadingErrorType.PaymentRejected
+        else -> ReadingErrorType.Other(errorMessage)
     }
 }
 
@@ -99,6 +103,7 @@ open class PaymentViewModel @Inject constructor(
     private val contactlessReadingUseCase: IContactlessReadingUseCase,
     private val contactReadingUseCase: IContactReadingUseCase,
 
+
     private val requestValidationPaymentUseCase: IRequestValidationPaymentUseCase,
     private val requestConfirmationPaymentUseCase: IRequestConfirmingPaymentUseCase,
     private val savePaymentUseCase: ISavePaymentUseCase,
@@ -141,6 +146,7 @@ open class PaymentViewModel @Inject constructor(
 
                 when (errorType) {
                     ReadingErrorType.InterfaceFallback -> {
+                        delay(1000)
                         withOtherReadingInterface()
                     }
 
@@ -154,6 +160,7 @@ open class PaymentViewModel @Inject constructor(
                         )
                     }
 
+                    ReadingErrorType.PaymentRejected,
                     is ReadingErrorType.Other, null -> {
                         onPaymentResult(
                             PaymentResult(
@@ -202,6 +209,9 @@ open class PaymentViewModel @Inject constructor(
                 .first()
 
             if (contactReadingResult !is ReadingUiState.Success) {
+
+                delay(1000)
+
                 val failure = contactReadingResult as? ReadingUiState.Failure
 
                 val errorType = failure?.getErrorType()
@@ -218,6 +228,7 @@ open class PaymentViewModel @Inject constructor(
                         )
                     }
 
+                    ReadingErrorType.PaymentRejected,
                     is ReadingErrorType.Other, null -> {
                         onPaymentResult(
                             PaymentResult(
@@ -254,6 +265,7 @@ open class PaymentViewModel @Inject constructor(
                     )
                 }
             }
+
             is Result.Error -> ReadingUiState.Failure(
                 errorCode = result.exception::class.simpleName,
                 errorMessage = result.exception.localizedMessage ?: "Error desconocido"
@@ -335,24 +347,14 @@ open class PaymentViewModel @Inject constructor(
         _pinpadButtonsUiEvent = pinpadButtonsUiEventUpdated
     }
 
-    fun onConfirmPinpadInput(
-        navigateToRegisterPayment: () -> Unit,
-        navigateToFailedSale: () -> Unit
-    ) {
-        _pinpadUiState = pinpadUiState.copy(confirmingPinUiState = ConfirmingPinUiState.Confirming)
-
+    fun onConfirmPinpadInput(navigateToRegisterPayment: () -> Unit) {
         viewModelScope.launch(
             block = {
+                _pinpadUiState = pinpadUiState.copy(confirmingPinUiState = ConfirmingPinUiState.Confirming)
+                delay(1500)
+                navigateToRegisterPayment()
 
-                delay(1500) // Simula procesamiento
-
-                val validPins = listOf("1234", "0000", "9999") // Lista de PINs válidos
-
-                if (pinpadUiState.pin in validPins) {
-                    navigateToRegisterPayment()
-                } else {
-                    navigateToFailedSale()
-                }
+                // TODO: RECHAZO POR KSNs invalidos
             }
         )
     }
@@ -447,6 +449,18 @@ open class PaymentViewModel @Inject constructor(
                 val errorMessage: String? =
                     (validatingPaymentProcessResult as? PaymentProcessUiState.Failure)?.errorMessage
 
+
+//                val validPins = listOf("1234", "0000", "9999") // Lista de PINs válidos
+//                    ReadingErrorType.PaymentRejected -> { TODO: IMPLEMENTAR RETORNO DE FALLAS
+//                        onPaymentResult(
+//                            PaymentResult(
+//                                isSuccess = false,
+//                                message = failure.errorMessage,
+//                                failedStep = "READING"
+//                            )
+//                        )
+//                    }
+
                 onPaymentResult(
                     PaymentResult(
                         isSuccess = false,
@@ -468,7 +482,6 @@ open class PaymentViewModel @Inject constructor(
             if (confirmingPaymentProcessResult !is PaymentProcessUiState.Success) {
                 val errorMessage: String? =
                     (confirmingPaymentProcessResult as? PaymentProcessUiState.Failure)?.errorMessage
-
 
                 onPaymentResult(
                     PaymentResult(
@@ -504,6 +517,8 @@ open class PaymentViewModel @Inject constructor(
             val paymentData: PaymentProcessData = savingPaymentProcessResult.data
 
             _paymentStepUiState.value = PaymentStepUiState.Done
+
+            delay(1000)
 
             onPaymentResult(
                 PaymentResult(

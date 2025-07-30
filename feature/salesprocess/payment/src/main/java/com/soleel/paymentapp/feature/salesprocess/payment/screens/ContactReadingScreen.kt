@@ -39,6 +39,9 @@ import com.soleel.paymentapp.core.ui.utils.WithFakeTopAppBar
 import com.soleel.paymentapp.domain.payment.RequestConfirmingPaymentUseCaseMock
 import com.soleel.paymentapp.domain.payment.RequestValidationPaymentUseCaseMock
 import com.soleel.paymentapp.domain.payment.SavePaymentUseCaseMock
+import com.soleel.paymentapp.domain.reading.ContactReadingUseCaseMock
+import com.soleel.paymentapp.domain.reading.ContactlessReadingUseCaseMock
+import com.soleel.paymentapp.domain.reading.IContactlessReadingUseCase
 import com.soleel.paymentapp.feature.salesprocess.payment.PaymentViewModel
 import com.soleel.paymentapp.feature.salesprocess.payment.ReadingUiState
 import com.soleel.paymentapp.feature.salesprocess.payment.component.FailurePrompt
@@ -59,7 +62,8 @@ private fun ContactReadingScreenLongPreview() {
                     ContactReadingScreen(
                         paymentViewModel = PaymentViewModel(
                             savedStateHandle = fakeSavedStateHandle,
-
+                            contactlessReadingUseCase = ContactlessReadingUseCaseMock(),
+                            contactReadingUseCase = ContactReadingUseCaseMock(),
                             requestValidationPaymentUseCase = RequestValidationPaymentUseCaseMock(),
                             requestConfirmationPaymentUseCase = RequestConfirmingPaymentUseCaseMock(),
                             savePaymentUseCase = SavePaymentUseCaseMock(),

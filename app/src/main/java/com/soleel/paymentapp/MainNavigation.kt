@@ -78,8 +78,8 @@ fun PaymentAppNavigationGraph() {
             paymentNavigationGraph(
                 saleToNavType = mapOf(typeOf<Sale>() to createNavType<Sale>()),
                 backToPrevious = { navHostController.popBackStack() },
-                navigateToOutcomeGraph = {
-                    navHostController.navigate(OutcomeGraph)
+                navigateToOutcomeGraph = { paymentResult: PaymentResult ->
+                    navHostController.navigate(OutcomeGraph(paymentResult = paymentResult))
                 }
             )
 

@@ -36,6 +36,8 @@ import com.soleel.paymentapp.core.ui.utils.WithFakeTopAppBar
 import com.soleel.paymentapp.domain.payment.RequestConfirmingPaymentUseCaseMock
 import com.soleel.paymentapp.domain.payment.RequestValidationPaymentUseCaseMock
 import com.soleel.paymentapp.domain.payment.SavePaymentUseCaseMock
+import com.soleel.paymentapp.domain.reading.ContactReadingUseCaseMock
+import com.soleel.paymentapp.domain.reading.ContactlessReadingUseCaseMock
 import com.soleel.paymentapp.feature.salesprocess.payment.ConfirmingPinUiState
 import com.soleel.paymentapp.feature.salesprocess.payment.PaymentViewModel
 import com.soleel.paymentapp.feature.salesprocess.payment.PinpadButtonUiEvent
@@ -51,6 +53,8 @@ private fun CashChangeCalculatorScreenLongPreview() {
 
     val paymentViewModel: PaymentViewModel = PaymentViewModel(
         savedStateHandle = fakeSavedStateHandle,
+        contactlessReadingUseCase = ContactlessReadingUseCaseMock(),
+        contactReadingUseCase = ContactReadingUseCaseMock(),
         requestValidationPaymentUseCase = RequestValidationPaymentUseCaseMock(),
         requestConfirmationPaymentUseCase = RequestConfirmingPaymentUseCaseMock(),
         savePaymentUseCase = SavePaymentUseCaseMock(),
@@ -63,8 +67,7 @@ private fun CashChangeCalculatorScreenLongPreview() {
                     PinpadScreen(
                         paymentViewModel = paymentViewModel,
                         onCancel = { },
-                        navigateToRegisterPayment = {},
-                        navigateToOutcomeGraph = {}
+                        navigateToRegisterPayment = {}
                     )
                 }
             )
@@ -76,8 +79,8 @@ private fun CashChangeCalculatorScreenLongPreview() {
 fun PinpadScreen(
     paymentViewModel: PaymentViewModel,
     onCancel: () -> Unit,
-    navigateToRegisterPayment: () -> Unit,
-    navigateToOutcomeGraph: (paymentResult: PaymentResult) -> Unit
+    navigateToRegisterPayment: () -> Unit
+//    navigateToOutcomeGraph: (paymentResult: PaymentResult) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -157,10 +160,7 @@ fun PinpadScreen(
             ConfirmButton(
                 confirmingPinUiState = paymentViewModel.pinpadUiState.confirmingPinUiState,
                 onConfirm = {
-                    paymentViewModel.onConfirmPinpadInput(
-                        navigateToRegisterPayment = navigateToRegisterPayment,
-                        navigateToFailedSale = navigateToOutcomeGraph
-                    )
+                    paymentViewModel.onConfirmPinpadInput(navigateToRegisterPayment = navigateToRegisterPayment)
                 }
             )
         }

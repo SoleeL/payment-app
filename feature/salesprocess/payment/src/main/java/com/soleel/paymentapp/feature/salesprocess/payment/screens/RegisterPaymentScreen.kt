@@ -43,6 +43,8 @@ import com.soleel.paymentapp.core.ui.utils.WithFakeTopAppBar
 import com.soleel.paymentapp.domain.payment.RequestConfirmingPaymentUseCaseMock
 import com.soleel.paymentapp.domain.payment.RequestValidationPaymentUseCaseMock
 import com.soleel.paymentapp.domain.payment.SavePaymentUseCaseMock
+import com.soleel.paymentapp.domain.reading.ContactReadingUseCaseMock
+import com.soleel.paymentapp.domain.reading.ContactlessReadingUseCaseMock
 import com.soleel.paymentapp.feature.salesprocess.payment.PaymentStepUiState
 import com.soleel.paymentapp.feature.salesprocess.payment.PaymentViewModel
 import kotlinx.coroutines.delay
@@ -61,6 +63,8 @@ private fun ProcessPaymentScreenLongPreview() {
                     ProcessPaymentScreen(
                         paymentViewModel = PaymentViewModel(
                             savedStateHandle = fakeSavedStateHandle,
+                            contactlessReadingUseCase = ContactlessReadingUseCaseMock(),
+                            contactReadingUseCase = ContactReadingUseCaseMock(),
                             requestValidationPaymentUseCase = RequestValidationPaymentUseCaseMock(),
                             requestConfirmationPaymentUseCase = RequestConfirmingPaymentUseCaseMock(),
                             savePaymentUseCase = SavePaymentUseCaseMock(),
@@ -182,7 +186,6 @@ fun PaymentProcessingChecklist(
     }
 //    val isProcessingFinished = currentStepIndex >= steps.size
 
-    // Animar puntos solo si el proceso NO terminó y está en un paso válido (no Idle o Error)
     LaunchedEffect(currentStepIndex) {
         if (currentStepIndex in 0 until steps.size) {
             while (true) {

@@ -165,8 +165,7 @@ fun PaymentScreen(
                             PinpadScreen(
                                 paymentViewModel = paymentViewModel,
                                 onCancel = backToPrevious,
-                                navigateToRegisterPayment = { navHostController.navigate(ProcessPayment) },
-                                navigateToOutcomeGraph = navigateToOutcomeGraph
+                                navigateToRegisterPayment = { navHostController.navigate(ProcessPayment) }
                             )
                         }
                     )
