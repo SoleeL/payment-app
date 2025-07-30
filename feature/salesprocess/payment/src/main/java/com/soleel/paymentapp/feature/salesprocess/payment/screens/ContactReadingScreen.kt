@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.soleel.paymentapp.core.component.SalesSummaryHeader
+import com.soleel.paymentapp.core.model.paymentprocess.PaymentResult
 import com.soleel.paymentapp.core.ui.R
 import com.soleel.paymentapp.core.ui.utils.LongDevicePreview
 import com.soleel.paymentapp.core.ui.utils.WithFakeSystemBars
@@ -58,6 +59,7 @@ private fun ContactReadingScreenLongPreview() {
                     ContactReadingScreen(
                         paymentViewModel = PaymentViewModel(
                             savedStateHandle = fakeSavedStateHandle,
+
                             requestValidationPaymentUseCase = RequestValidationPaymentUseCaseMock(),
                             requestConfirmationPaymentUseCase = RequestConfirmingPaymentUseCaseMock(),
                             savePaymentUseCase = SavePaymentUseCaseMock(),
@@ -75,8 +77,16 @@ private fun ContactReadingScreenLongPreview() {
 fun ContactReadingScreen(
     paymentViewModel: PaymentViewModel,
     navigateToVerificationMethod: () -> Unit,
-    navigateToOutcomeGraph: () -> Unit
+    navigateToOutcomeGraph: (paymentResult: PaymentResult) -> Unit
 ) {
+
+    LaunchedEffect(Unit) {
+        paymentViewModel.startContactReading(
+            onPaymentResult =  navigateToOutcomeGraph,
+            onVerificationMethod = navigateToVerificationMethod
+        )
+    }
+
     val contactReadingUiState: ReadingUiState by paymentViewModel.contactReadingUiState.collectAsStateWithLifecycle()
 
     Column(
@@ -94,17 +104,8 @@ fun ContactReadingScreen(
 
             when (contactReadingUiState) {
                 ReadingUiState.Reading -> ContactReaderPrompt()
-                ReadingUiState.Success -> {
-                    LaunchedEffect(
-                        key1 = Unit,
-                        block = {
-                            delay(timeMillis = 1000)
-                            navigateToVerificationMethod()
-                        }
-                    )
-                    SuccessPrompt()
-                }
-                ReadingUiState.Failure -> FailurePrompt()
+                ReadingUiState.Success -> SuccessPrompt()
+                is ReadingUiState.Failure -> FailurePrompt()
             }
         }
     )

@@ -23,6 +23,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.soleel.paymentapp.core.model.Sale
+import com.soleel.paymentapp.core.model.paymentprocess.PaymentResult
 import com.soleel.paymentapp.core.navigation.createNavType
 import com.soleel.paymentapp.feature.home.HomeGraph
 import com.soleel.paymentapp.feature.home.homeNavigationGraph
@@ -82,7 +83,9 @@ fun PaymentAppNavigationGraph() {
                 }
             )
 
-            outcomeNavigationGraph()
+            outcomeNavigationGraph(
+                paymentResultToNavType = mapOf(typeOf<PaymentResult>() to createNavType<PaymentResult>())
+            )
         }
     )
 }

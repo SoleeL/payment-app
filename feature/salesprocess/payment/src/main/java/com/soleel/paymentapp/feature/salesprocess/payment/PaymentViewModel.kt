@@ -11,10 +11,14 @@ import com.soleel.paymentapp.core.common.result.asResult
 import com.soleel.paymentapp.core.model.Sale
 import com.soleel.paymentapp.core.model.paymentprocess.ConfirmationPaymentProcessData
 import com.soleel.paymentapp.core.model.paymentprocess.PaymentProcessData
+import com.soleel.paymentapp.core.model.paymentprocess.PaymentResult
 import com.soleel.paymentapp.core.model.paymentprocess.ValidationPaymentProcessData
+import com.soleel.paymentapp.core.model.readingprocess.InterfaceReadData
 import com.soleel.paymentapp.domain.payment.IRequestConfirmingPaymentUseCase
 import com.soleel.paymentapp.domain.payment.IRequestValidationPaymentUseCase
 import com.soleel.paymentapp.domain.payment.ISavePaymentUseCase
+import com.soleel.paymentapp.domain.reading.IContactReadingUseCase
+import com.soleel.paymentapp.domain.reading.IContactlessReadingUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -32,7 +36,26 @@ import javax.inject.Inject
 sealed interface ReadingUiState {
     data object Reading : ReadingUiState
     data object Success : ReadingUiState
-    data object Failure : ReadingUiState
+    data class Failure(val errorCode: String?, val errorMessage: String?) : ReadingUiState
+}
+
+sealed interface ReadingStepUiState {
+    data object Active : ReadingStepUiState
+    data object Finalized : ReadingStepUiState
+}
+
+sealed class ReadingErrorType {
+    data object InterfaceFallback : ReadingErrorType()
+    data object InvalidCard : ReadingErrorType()
+    data class Other(val message: String?) : ReadingErrorType()
+}
+
+fun ReadingUiState.Failure.getErrorType(): ReadingErrorType {
+    return when (this.errorCode) {
+        "EMVCO_FALLBACK" -> ReadingErrorType.InterfaceFallback
+        "INVALID_CARD" -> ReadingErrorType.InvalidCard
+        else -> ReadingErrorType.Other(this.errorMessage)
+    }
 }
 
 sealed interface ConfirmingPinUiState {
@@ -63,41 +86,30 @@ sealed class PaymentProcessUiState<out T> {
 }
 
 sealed interface PaymentStepUiState {
-    data object Idle : PaymentStepUiState
     data object Validating : PaymentStepUiState
     data object Confirming : PaymentStepUiState
     data object Saving : PaymentStepUiState
     data object Done : PaymentStepUiState
-    data class Error(val message: String?, val step: Step) : PaymentStepUiState
-
-    enum class Step {
-        VALIDATING, CONFIRMING, SAVING
-    }
 }
 
 @HiltViewModel
 open class PaymentViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
+
+    private val contactlessReadingUseCase: IContactlessReadingUseCase,
+    private val contactReadingUseCase: IContactReadingUseCase,
+
     private val requestValidationPaymentUseCase: IRequestValidationPaymentUseCase,
     private val requestConfirmationPaymentUseCase: IRequestConfirmingPaymentUseCase,
     private val savePaymentUseCase: ISavePaymentUseCase,
-) : ViewModel() {
+
+    ) : ViewModel() {
     val sale: Sale = savedStateHandle.get<Sale>("sale") ?: Sale(calculatorTotal = 0f)
 
     // Contactless
-    private val _contactlessReadingUiState: Flow<ReadingUiState> = getContactlessReadingUiState()
-
-    private fun getContactlessReadingUiState(): Flow<ReadingUiState> = flow(
-        block = {
-            emit(ReadingUiState.Reading)
-            delay(5_000)
-            if (!false) { // TODO: Pendiente implementacion con shared preference para pruebas
-                emit(ReadingUiState.Success)
-            } else {
-                emit(ReadingUiState.Failure)
-            }
-        }
-    )
+    private val _contactlessReadingUiState: Flow<ReadingUiState> = contactlessReadingUseCase()
+        .asResult()
+        .map(transform = { mapReadDataToUiState(it) })
 
     val contactlessReadingUiState: StateFlow<ReadingUiState> = _contactlessReadingUiState
         .stateIn(
@@ -106,27 +118,148 @@ open class PaymentViewModel @Inject constructor(
             initialValue = ReadingUiState.Reading
         )
 
-    // Contact
-    private val _contactReadingUiState: Flow<ReadingUiState> = getContactReadingUiState()
+    private val _contactlessReadingStepUiState: MutableStateFlow<ReadingStepUiState> =
+        MutableStateFlow<ReadingStepUiState>(ReadingStepUiState.Active)
 
-    private fun getContactReadingUiState(): Flow<ReadingUiState> = flow(
-        block = {
-            emit(ReadingUiState.Reading)
-            delay(5_000)
+    fun startContactlessReading(
+        withOtherReadingInterface: () -> Unit,
+        onPaymentResult: (paymentResult: PaymentResult) -> Unit,
+        onVerificationMethod: () -> Unit
+    ) {
+        viewModelScope.launch {
+            _contactlessReadingStepUiState.value = ReadingStepUiState.Active
 
-            if (!false) { // TODO: Pendiente implementacion con shared preference para pruebas
-                emit(ReadingUiState.Success)
-            } else {
-                emit(ReadingUiState.Failure)
+            val contactlessReadingResult: ReadingUiState =
+                contactlessReadingUiState
+                    .filter(predicate = { it !is ReadingUiState.Reading })
+                    .first()
+
+            if (contactlessReadingResult !is ReadingUiState.Success) {
+                val failure = contactlessReadingResult as? ReadingUiState.Failure
+
+                val errorType = failure?.getErrorType()
+
+                when (errorType) {
+                    ReadingErrorType.InterfaceFallback -> {
+                        withOtherReadingInterface()
+                    }
+
+                    ReadingErrorType.InvalidCard -> {
+                        onPaymentResult(
+                            PaymentResult(
+                                isSuccess = false,
+                                message = failure.errorMessage,
+                                failedStep = "READING"
+                            )
+                        )
+                    }
+
+                    is ReadingErrorType.Other, null -> {
+                        onPaymentResult(
+                            PaymentResult(
+                                isSuccess = false,
+                                message = failure?.errorMessage ?: "Error desconocido",
+                                failedStep = "READING"
+                            )
+                        )
+                    }
+                }
+
+                return@launch
             }
+
+            _contactlessReadingStepUiState.value = ReadingStepUiState.Finalized
+
+            delay(1000)
+
+            onVerificationMethod()
         }
-    )
+    }
+
+    // Contact
+    private val _contactReadingUiState: Flow<ReadingUiState> = contactReadingUseCase()
+        .asResult()
+        .map(transform = { mapReadDataToUiState(it) })
 
     val contactReadingUiState: StateFlow<ReadingUiState> = _contactReadingUiState.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5_000),
         initialValue = ReadingUiState.Reading
     )
+
+    private val _contactReadingStepUiState: MutableStateFlow<ReadingStepUiState> =
+        MutableStateFlow<ReadingStepUiState>(ReadingStepUiState.Active)
+
+    fun startContactReading(
+        onPaymentResult: (paymentResult: PaymentResult) -> Unit,
+        onVerificationMethod: () -> Unit
+    ) {
+        viewModelScope.launch {
+            _contactReadingStepUiState.value = ReadingStepUiState.Active
+
+            val contactReadingResult: ReadingUiState = contactReadingUiState
+                .filter(predicate = { it !is ReadingUiState.Reading })
+                .first()
+
+            if (contactReadingResult !is ReadingUiState.Success) {
+                val failure = contactReadingResult as? ReadingUiState.Failure
+
+                val errorType = failure?.getErrorType()
+
+                when (errorType) {
+                    ReadingErrorType.InterfaceFallback,
+                    ReadingErrorType.InvalidCard -> {
+                        onPaymentResult(
+                            PaymentResult(
+                                isSuccess = false,
+                                message = failure.errorMessage,
+                                failedStep = "READING"
+                            )
+                        )
+                    }
+
+                    is ReadingErrorType.Other, null -> {
+                        onPaymentResult(
+                            PaymentResult(
+                                isSuccess = false,
+                                message = failure?.errorMessage ?: "Error desconocido",
+                                failedStep = "READING"
+                            )
+                        )
+                    }
+                }
+
+                return@launch
+            }
+
+            _contactReadingStepUiState.value = ReadingStepUiState.Finalized
+
+            delay(1000)
+
+            onVerificationMethod()
+        }
+    }
+
+    private fun mapReadDataToUiState(result: Result<InterfaceReadData>): ReadingUiState {
+        return when (result) {
+            Result.Loading -> ReadingUiState.Reading
+            is Result.Success -> {
+                val data = result.data
+                if (data.isValid) {
+                    ReadingUiState.Success
+                } else {
+                    ReadingUiState.Failure(
+                        errorCode = "INVALID_DATA",
+                        errorMessage = "Datos inválidos de lectura"
+                    )
+                }
+            }
+            is Result.Error -> ReadingUiState.Failure(
+                errorCode = result.exception::class.simpleName,
+                errorMessage = result.exception.localizedMessage ?: "Error desconocido"
+            )
+        }
+    }
 
     private var _pinpadUiState: PinpadUiState by mutableStateOf(PinpadUiState())
     val pinpadUiState: PinpadUiState get() = _pinpadUiState
@@ -297,25 +430,31 @@ open class PaymentViewModel @Inject constructor(
             )
 
     private val _paymentStepUiState: MutableStateFlow<PaymentStepUiState> =
-        MutableStateFlow<PaymentStepUiState>(PaymentStepUiState.Idle)
+        MutableStateFlow<PaymentStepUiState>(PaymentStepUiState.Validating)
     val paymentStepUiState: StateFlow<PaymentStepUiState> = _paymentStepUiState
 
-    fun startPaymentProcess() {
+    fun startPaymentProcess(onPaymentResult: (paymentResult: PaymentResult) -> Unit) {
         viewModelScope.launch {
             _paymentStepUiState.value = PaymentStepUiState.Validating
 
             val validatingPaymentProcessResult: PaymentProcessUiState<ValidationPaymentProcessData> =
                 validatingPaymentProcessUiState
+                    // README: ESTO FILTRA, TAL QUE LOS ESTADOS QUE PUEDEN SALIR SON Success O Failure
                     .filter(predicate = { it !is PaymentProcessUiState.Loading })
                     .first()
 
             if (validatingPaymentProcessResult !is PaymentProcessUiState.Success) {
                 val errorMessage: String? =
                     (validatingPaymentProcessResult as? PaymentProcessUiState.Failure)?.errorMessage
-                _paymentStepUiState.value = PaymentStepUiState.Error(
-                    errorMessage,
-                    PaymentStepUiState.Step.VALIDATING
+
+                onPaymentResult(
+                    PaymentResult(
+                        isSuccess = false,
+                        message = errorMessage,
+                        failedStep = "VALIDATING"
+                    )
                 )
+
                 return@launch
             }
 
@@ -329,10 +468,16 @@ open class PaymentViewModel @Inject constructor(
             if (confirmingPaymentProcessResult !is PaymentProcessUiState.Success) {
                 val errorMessage: String? =
                     (confirmingPaymentProcessResult as? PaymentProcessUiState.Failure)?.errorMessage
-                _paymentStepUiState.value = PaymentStepUiState.Error(
-                    errorMessage,
-                    PaymentStepUiState.Step.CONFIRMING
+
+
+                onPaymentResult(
+                    PaymentResult(
+                        isSuccess = false,
+                        message = errorMessage,
+                        failedStep = "CONFIRMING"
+                    )
                 )
+
                 return@launch
             }
 
@@ -346,14 +491,26 @@ open class PaymentViewModel @Inject constructor(
             if (savingPaymentProcessResult !is PaymentProcessUiState.Success) {
                 val errorMessage: String? =
                     (savingPaymentProcessResult as? PaymentProcessUiState.Failure)?.errorMessage
-                _paymentStepUiState.value = PaymentStepUiState.Error(
-                    errorMessage,
-                    PaymentStepUiState.Step.SAVING
+                onPaymentResult(
+                    PaymentResult(
+                        isSuccess = false,
+                        message = errorMessage,
+                        failedStep = "SAVING"
+                    )
                 )
                 return@launch
             }
 
+            val paymentData: PaymentProcessData = savingPaymentProcessResult.data
+
             _paymentStepUiState.value = PaymentStepUiState.Done
+
+            onPaymentResult(
+                PaymentResult(
+                    isSuccess = true,
+                    paymentId = paymentData.id
+                )
+            )
         }
     }
 }

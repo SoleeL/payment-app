@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.soleel.paymentapp.core.component.SalesSummaryHeader
+import com.soleel.paymentapp.core.model.paymentprocess.PaymentResult
 import com.soleel.paymentapp.core.ui.R
 import com.soleel.paymentapp.core.ui.utils.LongDevicePreview
 import com.soleel.paymentapp.core.ui.utils.WithFakeSystemBars
@@ -56,6 +57,7 @@ private fun ContactlessReadingScreenLongPreview() {
                     ContactlessReadingScreen(
                         paymentViewModel = PaymentViewModel(
                             savedStateHandle = fakeSavedStateHandle,
+
                             requestValidationPaymentUseCase = RequestValidationPaymentUseCaseMock(),
                             requestConfirmationPaymentUseCase = RequestConfirmingPaymentUseCaseMock(),
                             savePaymentUseCase = SavePaymentUseCaseMock(),
@@ -74,9 +76,17 @@ private fun ContactlessReadingScreenLongPreview() {
 fun ContactlessReadingScreen(
     paymentViewModel: PaymentViewModel,
     navigateToContactReading: () -> Unit,
-    navigateToVerificationMethod: () -> Unit,
-    navigateToOutcomeGraph: () -> Unit
+    navigateToOutcomeGraph: (paymentResult: PaymentResult) -> Unit,
+    navigateToVerificationMethod: () -> Unit
 ) {
+    LaunchedEffect(Unit) {
+        paymentViewModel.startContactlessReading(
+            withOtherReadingInterface = navigateToContactReading,
+            onPaymentResult =  navigateToOutcomeGraph,
+            onVerificationMethod = navigateToVerificationMethod
+        )
+    }
+
     val contactlessReadingUiState: ReadingUiState by paymentViewModel.contactlessReadingUiState.collectAsStateWithLifecycle()
 
     Column(
@@ -94,32 +104,8 @@ fun ContactlessReadingScreen(
 
             when (contactlessReadingUiState) {
                 ReadingUiState.Reading -> ContactlessReadingPrompt()
-                ReadingUiState.Success -> {
-                    LaunchedEffect(
-                        key1 = Unit,
-                        block = {
-                            delay(timeMillis = 1000)
-                            navigateToVerificationMethod()
-                        }
-                    )
-                    SuccessPrompt()
-                }
-
-                ReadingUiState.Failure -> {
-                    LaunchedEffect(
-                        key1 = Unit,
-                        block = {
-                            delay(timeMillis = 1000)
-                            if (true) {
-                                navigateToContactReading()
-                            } else {
-                                TODO("IMPLEMENTAR SALIDA")
-                                navigateToOutcomeGraph()
-                            }
-                        }
-                    )
-                    FailurePrompt()
-                }
+                ReadingUiState.Success -> SuccessPrompt()
+                is ReadingUiState.Failure -> FailurePrompt()
             }
         }
     )

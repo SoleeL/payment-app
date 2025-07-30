@@ -13,22 +13,34 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
+import com.soleel.paymentapp.core.model.Sale
+import com.soleel.paymentapp.core.model.paymentprocess.PaymentResult
 import kotlinx.serialization.Serializable
+import kotlin.reflect.KType
 
 @Serializable
-data object OutcomeGraph
+data class OutcomeGraph(val paymentResult: PaymentResult)
 
-fun NavGraphBuilder.outcomeNavigationGraph() {
+fun NavGraphBuilder.outcomeNavigationGraph(
+    paymentResultToNavType: Map<KType, NavType<PaymentResult>>,
+) {
     composable<OutcomeGraph>(
-        content = {
+        typeMap = paymentResultToNavType,
+        content = { backStackEntry ->
+            val paymentResult: PaymentResult = backStackEntry.toRoute<OutcomeGraph>().paymentResult
+            val savedStateHandle: SavedStateHandle = backStackEntry.savedStateHandle
+            savedStateHandle["paymentResult"] = paymentResult
             OutcomeScreen()
         }
     )

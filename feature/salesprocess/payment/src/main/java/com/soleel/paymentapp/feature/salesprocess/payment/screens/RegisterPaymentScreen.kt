@@ -5,10 +5,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -37,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.soleel.paymentapp.core.component.SalesSummaryHeader
+import com.soleel.paymentapp.core.model.paymentprocess.PaymentResult
 import com.soleel.paymentapp.core.ui.R
 import com.soleel.paymentapp.core.ui.utils.LongDevicePreview
 import com.soleel.paymentapp.core.ui.utils.WithFakeSystemBars
@@ -77,10 +76,10 @@ private fun ProcessPaymentScreenLongPreview() {
 @Composable
 fun ProcessPaymentScreen(
     paymentViewModel: PaymentViewModel,
-    navigateToOutcomeGraph: () -> Unit
+    navigateToOutcomeGraph: (paymentResult: PaymentResult) -> Unit
 ) {
     LaunchedEffect(Unit) {
-        paymentViewModel.startPaymentProcess()
+        paymentViewModel.startPaymentProcess(navigateToOutcomeGraph)
     }
 
     val paymentStep: PaymentStepUiState by paymentViewModel.paymentStepUiState.collectAsStateWithLifecycle()
@@ -99,12 +98,10 @@ fun ProcessPaymentScreen(
                 creditInstalmentsSelected = paymentViewModel.sale.creditInstalmentsSelected,
                 debitChangeSelected = paymentViewModel.sale.debitChangeSelected
             )
+
             AdBanner()
 
-            PaymentProcessingChecklist(
-                paymentStep = paymentStep,
-                onFinish = navigateToOutcomeGraph
-            )
+            PaymentProcessingChecklist(paymentStep = paymentStep)
         }
     )
 }
@@ -172,25 +169,22 @@ fun AdBanner(
 @Composable
 fun PaymentProcessingChecklist(
     modifier: Modifier = Modifier,
-    paymentStep: PaymentStepUiState,
-    onFinish: () -> Unit = {}
+    paymentStep: PaymentStepUiState
 ) {
     val steps = listOf("Validando pago", "Confirmando pago", "Guardando pago")
 
     var animatedDots by remember { mutableStateOf("") }
     val currentStepIndex = when (paymentStep) {
-        PaymentStepUiState.Idle -> -1
         PaymentStepUiState.Validating -> 0
         PaymentStepUiState.Confirming -> 1
         PaymentStepUiState.Saving -> 2
         PaymentStepUiState.Done -> 3
-        is PaymentStepUiState.Error -> paymentStep.step.ordinal
     }
-    val isProcessingFinished = currentStepIndex >= steps.size
+//    val isProcessingFinished = currentStepIndex >= steps.size
 
     // Animar puntos solo si el proceso NO terminó y está en un paso válido (no Idle o Error)
     LaunchedEffect(currentStepIndex) {
-        if (currentStepIndex in 0 until steps.size && !isProcessingFinished) {
+        if (currentStepIndex in 0 until steps.size) {
             while (true) {
                 repeat(4) { i ->
                     animatedDots = ".".repeat(i)
@@ -202,21 +196,15 @@ fun PaymentProcessingChecklist(
         }
     }
 
-    LaunchedEffect(isProcessingFinished) {
-        if (isProcessingFinished) {
-            onFinish()
-        }
-    }
-
     Column(modifier = modifier.fillMaxWidth()) {
         steps.forEachIndexed { index, step ->
             val prefix = when {
                 index < currentStepIndex -> "[ x ]"
-                index == currentStepIndex && !isProcessingFinished -> "[  ]"
+                index == currentStepIndex -> "[  ]"
                 else -> "[  ]"
             }
 
-            val text = if (index == currentStepIndex && !isProcessingFinished) {
+            val text = if (index == currentStepIndex) {
                 "$prefix $step$animatedDots"
             } else {
                 "$prefix $step"
@@ -225,16 +213,6 @@ fun PaymentProcessingChecklist(
             Text(
                 text = text,
                 style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(vertical = 8.dp)
-            )
-        }
-
-        if (paymentStep is PaymentStepUiState.Error) {
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "Error en paso ${paymentStep.step}: ${paymentStep.message ?: "desconocido"}",
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
         }

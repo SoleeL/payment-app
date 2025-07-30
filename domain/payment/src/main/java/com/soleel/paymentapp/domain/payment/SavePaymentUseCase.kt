@@ -36,7 +36,7 @@ class SavePaymentUseCaseMock @Inject constructor() : ISavePaymentUseCase {
         delay(2000)
         emit(
             PaymentProcessData(
-                paymentId = "PMT-TEST-9999",
+                id = "PMT-TEST-9999",
                 amount = 12345.67,
                 currency = "CLP",
                 savedAt = LocalDateTime.now(),

@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.SavedStateHandle
 import com.soleel.paymentapp.core.component.SalesSummaryHeader
+import com.soleel.paymentapp.core.model.paymentprocess.PaymentResult
 import com.soleel.paymentapp.core.ui.utils.LongDevicePreview
 import com.soleel.paymentapp.core.ui.utils.WithFakeSystemBars
 import com.soleel.paymentapp.core.ui.utils.WithFakeTopAppBar
@@ -76,7 +77,7 @@ fun PinpadScreen(
     paymentViewModel: PaymentViewModel,
     onCancel: () -> Unit,
     navigateToRegisterPayment: () -> Unit,
-    navigateToOutcomeGraph: () -> Unit
+    navigateToOutcomeGraph: (paymentResult: PaymentResult) -> Unit
 ) {
     Column(
         modifier = Modifier

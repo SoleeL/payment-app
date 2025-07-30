@@ -15,4 +15,5 @@ dependencies {
     implementation(projects.core.ui)
 
     implementation(projects.domain.payment)
+    implementation(projects.domain.reading)
 }

@@ -27,6 +27,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.soleel.paymentapp.core.model.Sale
+import com.soleel.paymentapp.core.model.paymentprocess.PaymentResult
 import com.soleel.paymentapp.feature.salesprocess.payment.screens.ContactReadingScreen
 import com.soleel.paymentapp.feature.salesprocess.payment.screens.ContactlessReadingScreen
 import com.soleel.paymentapp.feature.salesprocess.payment.screens.PinpadScreen
@@ -40,7 +41,7 @@ data class PaymentGraph(val sale: Sale)
 fun NavGraphBuilder.paymentNavigationGraph(
     saleToNavType: Map<KType, NavType<Sale>>,
     backToPrevious: () -> Unit,
-    navigateToOutcomeGraph: () -> Unit
+    navigateToOutcomeGraph: (paymentResult: PaymentResult) -> Unit
 ) {
     composable<PaymentGraph>(
         typeMap = saleToNavType,
@@ -74,7 +75,7 @@ fun PaymentScreen(
     navHostController: NavHostController = rememberNavController(),
     paymentViewModel: PaymentViewModel = hiltViewModel(),
     backToPrevious: () -> Unit, // TODO Cambiar por un cancel
-    navigateToOutcomeGraph: () -> Unit
+    navigateToOutcomeGraph: (paymentResult: PaymentResult) -> Unit
 ) {
     val currentDestination: NavDestination? = navHostController.currentBackStackEntryAsState()
         .value?.destination
