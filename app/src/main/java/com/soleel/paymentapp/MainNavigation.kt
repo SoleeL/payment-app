@@ -22,14 +22,18 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.soleel.paymentapp.core.model.Sale
+import com.soleel.paymentapp.core.navigation.createNavType
 import com.soleel.paymentapp.feature.home.HomeGraph
 import com.soleel.paymentapp.feature.home.homeNavigationGraph
+import com.soleel.paymentapp.feature.salesprocess.outcome.OutcomeGraph
 import com.soleel.paymentapp.feature.salesprocess.outcome.outcomeNavigationGraph
 import com.soleel.paymentapp.feature.salesprocess.payment.PaymentGraph
 import com.soleel.paymentapp.feature.salesprocess.payment.paymentNavigationGraph
 import com.soleel.paymentapp.feature.salesprocess.setup.SetupGraph
 import com.soleel.paymentapp.feature.salesprocess.setup.setupNavigationGraph
 import kotlinx.serialization.Serializable
+import kotlin.reflect.typeOf
 
 @Serializable
 object Loading
@@ -65,12 +69,18 @@ fun PaymentAppNavigationGraph() {
 
             setupNavigationGraph(
                 backToPrevious = { navHostController.popBackStack() },
-                navigateToPaymentGraph = {
-                    navHostController.navigate(PaymentGraph)
+                navigateToPaymentGraph = { sale: Sale ->
+                    navHostController.navigate(PaymentGraph(sale = sale))
                 }
             )
 
-            paymentNavigationGraph()
+            paymentNavigationGraph(
+                saleToNavType = mapOf(typeOf<Sale>() to createNavType<Sale>()),
+                backToPrevious = { navHostController.popBackStack() },
+                navigateToOutcomeGraph = {
+                    navHostController.navigate(OutcomeGraph)
+                }
+            )
 
             outcomeNavigationGraph()
         }

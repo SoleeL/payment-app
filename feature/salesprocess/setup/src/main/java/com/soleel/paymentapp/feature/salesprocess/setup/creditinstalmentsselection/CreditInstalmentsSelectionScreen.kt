@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
 import com.soleel.paymentapp.core.component.SalesSummaryHeader
+import com.soleel.paymentapp.core.model.Sale
 import com.soleel.paymentapp.core.model.enums.PaymentMethodEnum
 import com.soleel.paymentapp.core.ui.utils.LongDevicePreview
 import com.soleel.paymentapp.core.ui.utils.WithFakeSystemBars
@@ -67,7 +68,7 @@ private fun CreditInstalmentsSelectionScreenLongPreview() {
 fun CreditInstalmentsSelectionScreen(
     setupViewModel: SetupViewModel,
     creditInstalmentsSelectionViewModel: CreditInstalmentsSelectionViewModel = hiltViewModel(),
-    navigateToPaymentGraph: () -> Unit
+    navigateToPaymentGraph: (sale: Sale) -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),

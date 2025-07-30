@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import com.soleel.paymentapp.core.model.Sale
 import com.soleel.paymentapp.core.model.enums.PaymentMethodEnum
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -30,7 +31,7 @@ sealed class SetupUiEvent {
 
     data class CreditInstalmentsSelected(
         val creditInstalmentsSelected: Int?,
-        val navigationToNextScreen: () -> Unit
+        val navigationToNextScreen: (sale: Sale) -> Unit
     ) : SetupUiEvent()
 
     data class DebitChangeSelected(val debitChangeSelected: Float) : SetupUiEvent()
@@ -65,11 +66,21 @@ open class SetupViewModel @Inject constructor(
                 _setupUiModel = setupUiModel.copy(
                     creditInstalmentsSelected = event.creditInstalmentsSelected
                 )
-                event.navigationToNextScreen()
+                event.navigationToNextScreen(_setupUiModel.toSale())
             }
 
             is SetupUiEvent.DebitChangeSelected -> TODO()
         }
     }
 
+    private fun SetupUiModel.toSale(): Sale {
+        return Sale(
+            calculatorTotal = calculatorTotal,
+            tipTotal = tipTotal,
+            paymentMethodSelected = paymentMethodSelected,
+            cashChangeSelected = cashChangeSelected,
+            creditInstalmentsSelected = creditInstalmentsSelected,
+            debitChangeSelected = debitChangeSelected
+        )
+    }
 }

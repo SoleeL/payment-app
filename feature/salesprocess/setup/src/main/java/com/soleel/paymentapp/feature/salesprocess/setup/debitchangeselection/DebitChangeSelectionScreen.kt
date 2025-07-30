@@ -11,13 +11,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.soleel.paymentapp.core.component.SalesSummaryHeader
+import com.soleel.paymentapp.core.model.Sale
 import com.soleel.paymentapp.feature.salesprocess.setup.SetupViewModel
 
 
 @Composable
 fun DebitChangeSelectionScreen(
     setupViewModel: SetupViewModel,
-    navigateToPaymentGraph: () -> Unit
+    navigateToPaymentGraph: (sale: Sale) -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),

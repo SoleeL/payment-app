@@ -27,6 +27,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.soleel.paymentapp.core.model.Sale
 import com.soleel.paymentapp.feature.salesprocess.setup.cashchangecalculator.CashChangeCalculatorScreen
 import com.soleel.paymentapp.feature.salesprocess.setup.creditinstalmentsselection.CreditInstalmentsSelectionScreen
 import com.soleel.paymentapp.feature.salesprocess.setup.debitchangeselection.DebitChangeSelectionScreen
@@ -40,7 +41,7 @@ data class SetupGraph(val calculatorTotal: Float)
 
 fun NavGraphBuilder.setupNavigationGraph(
     backToPrevious: () -> Unit,
-    navigateToPaymentGraph: () -> Unit
+    navigateToPaymentGraph: (sale: Sale) -> Unit
 ) {
     composable<SetupGraph>(
         content = { backStackEntry ->
@@ -76,7 +77,7 @@ fun SetupScreen(
     navHostController: NavHostController = rememberNavController(),
     setupViewModel: SetupViewModel = hiltViewModel(),
     backToPrevious: () -> Unit,
-    navigateToPaymentGraph: () -> Unit
+    navigateToPaymentGraph: (sale: Sale) -> Unit
 ) {
     val currentDestination: NavDestination? = navHostController.currentBackStackEntryAsState()
         .value?.destination
