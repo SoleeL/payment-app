@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,10 +23,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,20 +35,15 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.soleel.paymentapp.core.common.retryflow.RetryableFlowTrigger
 import com.soleel.paymentapp.core.component.SalesSummaryHeader
-import com.soleel.paymentapp.core.model.paymentprocess.ConfirmationPaymentProcessData
-import com.soleel.paymentapp.core.model.paymentprocess.PaymentProcessData
-import com.soleel.paymentapp.core.model.paymentprocess.ValidationPaymentProcessData
+import com.soleel.paymentapp.core.ui.R
 import com.soleel.paymentapp.core.ui.utils.LongDevicePreview
 import com.soleel.paymentapp.core.ui.utils.WithFakeSystemBars
 import com.soleel.paymentapp.core.ui.utils.WithFakeTopAppBar
-import com.soleel.paymentapp.feature.salesprocess.payment.PaymentViewModel
-import kotlinx.coroutines.delay
-import com.soleel.paymentapp.core.ui.R
-import com.soleel.paymentapp.domain.payment.ISavePaymentUseCase
 import com.soleel.paymentapp.domain.payment.RequestConfirmingPaymentUseCaseMock
 import com.soleel.paymentapp.domain.payment.RequestValidationPaymentUseCaseMock
 import com.soleel.paymentapp.domain.payment.SavePaymentUseCaseMock
-import com.soleel.paymentapp.feature.salesprocess.payment.PaymentProcessUiState
+import com.soleel.paymentapp.feature.salesprocess.payment.PaymentStepUiState
+import com.soleel.paymentapp.feature.salesprocess.payment.PaymentViewModel
 
 @LongDevicePreview
 @Composable
@@ -85,10 +77,11 @@ fun ProcessPaymentScreen(
     paymentViewModel: PaymentViewModel,
     navigateToOutcomeGraph: () -> Unit
 ) {
+    LaunchedEffect(Unit) {
+        paymentViewModel.startPaymentProcess()
+    }
 
-    val validationState by paymentViewModel.validatingPaymentProcessUiState.collectAsStateWithLifecycle()
-    val confirmationState by paymentViewModel.confirmingPaymentProcessUiState.collectAsStateWithLifecycle()
-    val savingState by paymentViewModel.savingPaymentProcessUiState.collectAsStateWithLifecycle()
+    val paymentStep: PaymentStepUiState by paymentViewModel.paymentStepUiState.collectAsStateWithLifecycle()
 
     Column(
         modifier = Modifier
@@ -105,11 +98,10 @@ fun ProcessPaymentScreen(
                 debitChangeSelected = paymentViewModel.sale.debitChangeSelected
             )
             AdBanner()
+
             PaymentProcessingChecklist(
-                validationState = validationState,
-                confirmationState = confirmationState,
-                savingState = savingState,
-                onFinish = { navigateToOutcomeGraph() }
+                paymentStep = paymentStep,
+                onFinish = navigateToOutcomeGraph
             )
         }
     )
@@ -178,17 +170,20 @@ fun AdBanner(
 @Composable
 fun PaymentProcessingChecklist(
     modifier: Modifier = Modifier,
-    validationState: PaymentProcessUiState<ValidationPaymentProcessData>,
-    confirmationState: PaymentProcessUiState<ConfirmationPaymentProcessData>,
-    savingState: PaymentProcessUiState<PaymentProcessData>,
+    paymentStep: PaymentStepUiState,
     onFinish: () -> Unit = {}
 ) {
     val steps = listOf("Validando pago", "Confirmando pago", "Guardando pago")
-    val currentStepIndex = when {
-        validationState is PaymentProcessUiState.Loading -> 0
-        confirmationState is PaymentProcessUiState.Loading -> 1
-        savingState is PaymentProcessUiState.Loading -> 2
-        else -> 3
+    val currentStepIndex = when (paymentStep) {
+        PaymentStepUiState.Idle -> -1
+        PaymentStepUiState.Validating -> 0
+        PaymentStepUiState.Confirming -> 1
+        PaymentStepUiState.Saving -> 2
+        PaymentStepUiState.Done -> 3
+        is PaymentStepUiState.Error -> {
+            // Error lo colocamos en el paso donde ocurrió
+            paymentStep.step.ordinal
+        }
     }
 
     val isProcessingFinished = currentStepIndex >= steps.size
@@ -210,6 +205,16 @@ fun PaymentProcessingChecklist(
             Text(
                 text = "$prefix $step",
                 style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+        }
+
+        if (paymentStep is PaymentStepUiState.Error) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Error en paso ${paymentStep.step}: ${paymentStep.message ?: "desconocido"}",
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
         }

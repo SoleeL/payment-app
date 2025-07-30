@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -38,9 +37,8 @@ import com.soleel.paymentapp.domain.payment.RequestConfirmingPaymentUseCaseMock
 import com.soleel.paymentapp.domain.payment.RequestValidationPaymentUseCaseMock
 import com.soleel.paymentapp.domain.payment.SavePaymentUseCaseMock
 import com.soleel.paymentapp.feature.salesprocess.payment.ConfirmingPinUiState
-import com.soleel.paymentapp.feature.salesprocess.payment.PinpadButtonUiEvent
 import com.soleel.paymentapp.feature.salesprocess.payment.PaymentViewModel
-import com.soleel.paymentapp.feature.salesprocess.payment.PinpadUiState
+import com.soleel.paymentapp.feature.salesprocess.payment.PinpadButtonUiEvent
 import kotlinx.coroutines.delay
 
 

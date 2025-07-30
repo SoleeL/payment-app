@@ -6,27 +6,27 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.soleel.paymentapp.core.model.Sale
-import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
-import javax.inject.Inject
 import com.soleel.paymentapp.core.common.result.Result
 import com.soleel.paymentapp.core.common.result.asResult
 import com.soleel.paymentapp.core.common.retryflow.RetryableFlowTrigger
-import com.soleel.paymentapp.core.common.retryflow.retryableFlow
+import com.soleel.paymentapp.core.model.Sale
 import com.soleel.paymentapp.core.model.paymentprocess.ConfirmationPaymentProcessData
 import com.soleel.paymentapp.core.model.paymentprocess.PaymentProcessData
 import com.soleel.paymentapp.core.model.paymentprocess.ValidationPaymentProcessData
 import com.soleel.paymentapp.domain.payment.IRequestConfirmingPaymentUseCase
 import com.soleel.paymentapp.domain.payment.IRequestValidationPaymentUseCase
 import com.soleel.paymentapp.domain.payment.ISavePaymentUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 sealed interface ReadingUiState {
     data object Reading : ReadingUiState
@@ -59,6 +59,19 @@ sealed class PaymentProcessUiState<out T> {
     data object Loading : PaymentProcessUiState<Nothing>()
     data class Success<T>(val data: T) : PaymentProcessUiState<T>()
     data class Failure(val errorMessage: String? = null) : PaymentProcessUiState<Nothing>()
+}
+
+sealed interface PaymentStepUiState {
+    data object Idle : PaymentStepUiState
+    data object Validating : PaymentStepUiState
+    data object Confirming : PaymentStepUiState
+    data object Saving : PaymentStepUiState
+    data object Done : PaymentStepUiState
+    data class Error(val message: String?, val step: Step) : PaymentStepUiState
+
+    enum class Step {
+        VALIDATING, CONFIRMING, SAVING
+    }
 }
 
 @HiltViewModel
@@ -212,14 +225,9 @@ open class PaymentViewModel @Inject constructor(
     }
 
     private val _validatingPaymentProcessUiState: Flow<PaymentProcessUiState<ValidationPaymentProcessData>> =
-        retryableFlowTrigger
-            .retryableFlow(flowProvider = { requestValidationPaymentProcess() })
-
-    private fun requestValidationPaymentProcess(): Flow<PaymentProcessUiState<ValidationPaymentProcessData>> {
-        return requestValidationPaymentUseCase()
+        requestValidationPaymentUseCase()
             .asResult()
-            .map(transform = { this.getValidationPaymentProcessData(it) })
-    }
+            .map { getValidationPaymentProcessData(it) }
 
     private fun getValidationPaymentProcessData(validationPaymentProcessResult: Result<ValidationPaymentProcessData>): PaymentProcessUiState<ValidationPaymentProcessData> {
         return when (validationPaymentProcessResult) {
@@ -227,6 +235,7 @@ open class PaymentViewModel @Inject constructor(
             is Result.Success<ValidationPaymentProcessData> -> {
                 PaymentProcessUiState.Success(validationPaymentProcessResult.data)
             }
+
             is Result.Error -> PaymentProcessUiState.Failure(validationPaymentProcessResult.exception.message)
         }
     }
@@ -240,13 +249,9 @@ open class PaymentViewModel @Inject constructor(
             )
 
     private val _confirmingPaymentProcessUiState: Flow<PaymentProcessUiState<ConfirmationPaymentProcessData>> =
-        requestConfirmingPaymentProcess()
-
-    private fun requestConfirmingPaymentProcess(): Flow<PaymentProcessUiState<ConfirmationPaymentProcessData>> {
-        return requestConfirmationPaymentUseCase()
+        requestConfirmationPaymentUseCase()
             .asResult()
             .map(transform = { this.getConfirmationPaymentProcessData(it) })
-    }
 
     private fun getConfirmationPaymentProcessData(confirmationPaymentProcessResult: Result<ConfirmationPaymentProcessData>): PaymentProcessUiState<ConfirmationPaymentProcessData> {
         return when (confirmationPaymentProcessResult) {
@@ -254,6 +259,7 @@ open class PaymentViewModel @Inject constructor(
             is Result.Success<ConfirmationPaymentProcessData> -> {
                 PaymentProcessUiState.Success(confirmationPaymentProcessResult.data)
             }
+
             is Result.Error -> PaymentProcessUiState.Failure(confirmationPaymentProcessResult.exception.message)
         }
     }
@@ -266,13 +272,9 @@ open class PaymentViewModel @Inject constructor(
                 initialValue = PaymentProcessUiState.Loading
             )
 
-    private val _savingPaymentProcessUiState: Flow<PaymentProcessUiState<PaymentProcessData>> = savingPaymentProcess()
-
-    private fun savingPaymentProcess(): Flow<PaymentProcessUiState<PaymentProcessData>> {
-        return savePaymentUseCase()
+    private val _savingPaymentProcessUiState: Flow<PaymentProcessUiState<PaymentProcessData>> = savePaymentUseCase()
             .asResult()
             .map(transform = { this.getPaymentProcessData(it) })
-    }
 
     private fun getPaymentProcessData(savePaymentProcessResult: Result<PaymentProcessData>): PaymentProcessUiState<PaymentProcessData> {
         return when (savePaymentProcessResult) {
@@ -280,11 +282,12 @@ open class PaymentViewModel @Inject constructor(
             is Result.Success<PaymentProcessData> -> {
                 PaymentProcessUiState.Success(savePaymentProcessResult.data)
             }
+
             is Result.Error -> PaymentProcessUiState.Failure(savePaymentProcessResult.exception.message)
         }
     }
 
-    val savingPaymentProcessUiState: StateFlow<PaymentProcessUiState<PaymentProcessData>> =
+    private val savingPaymentProcessUiState: StateFlow<PaymentProcessUiState<PaymentProcessData>> =
         _savingPaymentProcessUiState
             .stateIn(
                 scope = viewModelScope,
@@ -292,5 +295,56 @@ open class PaymentViewModel @Inject constructor(
                 initialValue = PaymentProcessUiState.Loading
             )
 
+    private val _paymentStepUiState: MutableStateFlow<PaymentStepUiState> = MutableStateFlow<PaymentStepUiState>(PaymentStepUiState.Idle)
+    val paymentStepUiState: StateFlow<PaymentStepUiState> = _paymentStepUiState
 
+    fun startPaymentProcess() {
+        viewModelScope.launch {
+            _paymentStepUiState.value = PaymentStepUiState.Validating
+
+            val validatingPaymentProcessResult: PaymentProcessUiState<ValidationPaymentProcessData> =
+                validatingPaymentProcessUiState.value
+
+            if (validatingPaymentProcessResult !is PaymentProcessUiState.Success) {
+                val errorMessage: String? =
+                    (validatingPaymentProcessResult as? PaymentProcessUiState.Failure)?.errorMessage
+                _paymentStepUiState.value = PaymentStepUiState.Error(
+                    errorMessage,
+                    PaymentStepUiState.Step.VALIDATING
+                )
+                return@launch
+            }
+
+            _paymentStepUiState.value = PaymentStepUiState.Confirming
+
+            val confirmingPaymentProcessResult: PaymentProcessUiState<ConfirmationPaymentProcessData> =
+                confirmingPaymentProcessUiState.value
+
+            if (confirmingPaymentProcessResult !is PaymentProcessUiState.Success) {
+                val errorMessage: String? =
+                    (confirmingPaymentProcessResult as? PaymentProcessUiState.Failure)?.errorMessage
+                _paymentStepUiState.value = PaymentStepUiState.Error(
+                    errorMessage,
+                    PaymentStepUiState.Step.CONFIRMING
+                )
+                return@launch
+            }
+
+            _paymentStepUiState.value = PaymentStepUiState.Saving
+
+            val savingPaymentProcessResult = savingPaymentProcessUiState.value
+
+            if (savingPaymentProcessResult !is PaymentProcessUiState.Success) {
+                val errorMessage: String? =
+                    (savingPaymentProcessResult as? PaymentProcessUiState.Failure)?.errorMessage
+                _paymentStepUiState.value = PaymentStepUiState.Error(
+                    errorMessage,
+                    PaymentStepUiState.Step.SAVING
+                )
+                return@launch
+            }
+
+            _paymentStepUiState.value = PaymentStepUiState.Done
+        }
+    }
 }
