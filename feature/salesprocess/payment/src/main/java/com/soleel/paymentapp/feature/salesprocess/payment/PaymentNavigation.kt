@@ -30,7 +30,7 @@ import com.soleel.paymentapp.core.model.Sale
 import com.soleel.paymentapp.feature.salesprocess.payment.screens.ContactReadingScreen
 import com.soleel.paymentapp.feature.salesprocess.payment.screens.ContactlessReadingScreen
 import com.soleel.paymentapp.feature.salesprocess.payment.screens.PinpadScreen
-import com.soleel.paymentapp.feature.salesprocess.payment.screens.RegisterPaymentScreen
+import com.soleel.paymentapp.feature.salesprocess.payment.screens.ProcessPaymentScreen
 import kotlinx.serialization.Serializable
 import kotlin.reflect.KType
 
@@ -66,7 +66,7 @@ object ContactReading
 object Pinpad
 
 @Serializable
-object RegisterPayment
+object ProcessPayment
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -144,7 +144,7 @@ fun PaymentScreen(
                                 paymentViewModel = paymentViewModel,
                                 navigateToContactReading = { navHostController.navigate(ContactReading)},
                                 navigateToVerificationMethod = { navHostController.navigate(Pinpad) },
-                                navigateToFailedSale = { }
+                                navigateToOutcomeGraph = navigateToOutcomeGraph
                             )
                         }
                     )
@@ -153,7 +153,8 @@ fun PaymentScreen(
                         content = {
                             ContactReadingScreen(
                                 paymentViewModel = paymentViewModel,
-                                navigateToVerificationMethod = { navHostController.navigate(Pinpad) }
+                                navigateToVerificationMethod = { navHostController.navigate(Pinpad) },
+                                navigateToOutcomeGraph = navigateToOutcomeGraph
                             )
                         }
                     )
@@ -163,15 +164,18 @@ fun PaymentScreen(
                             PinpadScreen(
                                 paymentViewModel = paymentViewModel,
                                 onCancel = backToPrevious,
-                                navigateToFailedSale = { },
-                                navigateToRegisterPayment = { }
+                                navigateToRegisterPayment = { navHostController.navigate(ProcessPayment) },
+                                navigateToOutcomeGraph = navigateToOutcomeGraph
                             )
                         }
                     )
 
-                    composable<RegisterPayment>(
+                    composable<ProcessPayment>(
                         content = {
-                            RegisterPaymentScreen()
+                            ProcessPaymentScreen(
+                                paymentViewModel = paymentViewModel,
+                                navigateToOutcomeGraph = navigateToOutcomeGraph
+                            )
                         }
                     )
                 }

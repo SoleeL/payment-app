@@ -20,6 +20,11 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -28,8 +33,11 @@ import com.soleel.paymentapp.core.component.SalesSummaryHeader
 import com.soleel.paymentapp.core.ui.utils.LongDevicePreview
 import com.soleel.paymentapp.core.ui.utils.WithFakeSystemBars
 import com.soleel.paymentapp.core.ui.utils.WithFakeTopAppBar
+import com.soleel.paymentapp.feature.salesprocess.payment.ConfirmingPinUiState
 import com.soleel.paymentapp.feature.salesprocess.payment.PinpadButtonUiEvent
 import com.soleel.paymentapp.feature.salesprocess.payment.PaymentViewModel
+import com.soleel.paymentapp.feature.salesprocess.payment.PinpadUiState
+import kotlinx.coroutines.delay
 
 
 @LongDevicePreview
@@ -50,7 +58,7 @@ private fun CashChangeCalculatorScreenLongPreview() {
                         paymentViewModel = paymentViewModel,
                         onCancel = { },
                         navigateToRegisterPayment = {},
-                        navigateToFailedSale = {}
+                        navigateToOutcomeGraph = {}
                     )
                 }
             )
@@ -63,7 +71,7 @@ fun PinpadScreen(
     paymentViewModel: PaymentViewModel,
     onCancel: () -> Unit,
     navigateToRegisterPayment: () -> Unit,
-    navigateToFailedSale: () -> Unit
+    navigateToOutcomeGraph: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -80,19 +88,19 @@ fun PinpadScreen(
                 debitChangeSelected = paymentViewModel.sale.debitChangeSelected
             )
 
-            Spacer(modifier = Modifier.weight(1f))
-
             Row(
                 modifier = Modifier
+                    .weight(1f)
                     .fillMaxWidth()
                     .padding(horizontal = 48.dp),
                 horizontalArrangement = Arrangement.Center,
                 content = {
                     repeat(paymentViewModel.pinpadUiState.pin.length) {
                         Text(
-                            text = "* ",
-                            style = MaterialTheme.typography.headlineLarge,
-                            modifier = Modifier.padding(horizontal = 4.dp)
+                            text = " * ",
+                            style = MaterialTheme.typography.displayMedium,
+                            modifier = Modifier.padding(horizontal = 4.dp),
+                            maxLines = 1
                         )
                     }
                 }
@@ -118,7 +126,7 @@ fun PinpadScreen(
                                     paymentViewModel.onPinpadButtonUiEvent(buttonUiEvent, onCancel)
                                 },
                                 modifier = Modifier.aspectRatio(1f),
-                                enabled = buttonUiState.isEnabled,
+                                enabled = buttonUiState.isEnabled && paymentViewModel.pinpadUiState.confirmingPinUiState != ConfirmingPinUiState.Confirming,
                                 shape = CircleShape,
                                 colors = if (buttonUiEvent is PinpadButtonUiEvent.WhenNumberIsDigested) {
                                     ButtonDefaults.buttonColors()
@@ -140,28 +148,62 @@ fun PinpadScreen(
                 }
             )
 
-            Button(
-                onClick = {
+            ConfirmButton(
+                confirmingPinUiState = paymentViewModel.pinpadUiState.confirmingPinUiState,
+                onConfirm = {
                     paymentViewModel.onConfirmPinpadInput(
                         navigateToRegisterPayment = navigateToRegisterPayment,
-                        navigateToFailedSale = navigateToFailedSale
-                    )
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 48.dp)
-                    .height(80.dp),
-                shape = RoundedCornerShape(50),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                ),
-                content = {
-                    Text(
-                        text = "CONFIRMAR",
-                        style = MaterialTheme.typography.headlineSmall
+                        navigateToFailedSale = navigateToOutcomeGraph
                     )
                 }
+            )
+        }
+    )
+}
+
+@Composable
+fun ConfirmButton(
+    confirmingPinUiState: ConfirmingPinUiState,
+    onConfirm: () -> Unit
+) {
+    var animatedText: String by remember { mutableStateOf("CONFIRMANDO") }
+
+    LaunchedEffect(
+        key1 = confirmingPinUiState,
+        block = {
+            if (confirmingPinUiState == ConfirmingPinUiState.Confirming) {
+                val base: String = "CONFIRMANDO"
+                while (confirmingPinUiState == ConfirmingPinUiState.Confirming) {
+                    repeat(
+                        times = 4,
+                        action = { i ->
+                            animatedText = base + ".".repeat(i)
+                            delay(250)
+                        }
+                    )
+                }
+            } else {
+                animatedText = "CONFIRMAR"
+            }
+        }
+    )
+
+    Button(
+        onClick = onConfirm,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 48.dp)
+            .height(80.dp),
+        enabled = confirmingPinUiState != ConfirmingPinUiState.Confirming,
+        shape = RoundedCornerShape(50),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary
+        ),
+        content = {
+            Text(
+                text = animatedText,
+                style = MaterialTheme.typography.headlineSmall
             )
         }
     )

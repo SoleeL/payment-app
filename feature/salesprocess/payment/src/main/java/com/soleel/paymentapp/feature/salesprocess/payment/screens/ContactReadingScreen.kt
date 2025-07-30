@@ -56,7 +56,8 @@ private fun ContactReadingScreenLongPreview() {
                         paymentViewModel = PaymentViewModel(
                             savedStateHandle = fakeSavedStateHandle
                         ),
-                        navigateToVerificationMethod = { }
+                        navigateToVerificationMethod = { },
+                        navigateToOutcomeGraph = { }
                     )
                 }
             )
@@ -67,7 +68,8 @@ private fun ContactReadingScreenLongPreview() {
 @Composable
 fun ContactReadingScreen(
     paymentViewModel: PaymentViewModel,
-    navigateToVerificationMethod: () -> Unit
+    navigateToVerificationMethod: () -> Unit,
+    navigateToOutcomeGraph: () -> Unit
 ) {
     val contactReadingUiState: ReadingUiState by paymentViewModel.contactReadingUiState.collectAsStateWithLifecycle()
 

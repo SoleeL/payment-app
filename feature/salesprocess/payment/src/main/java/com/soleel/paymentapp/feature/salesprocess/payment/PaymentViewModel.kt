@@ -119,7 +119,7 @@ open class PaymentViewModel @Inject constructor(
     fun onPinpadButtonUiEvent(event: PinpadButtonUiEvent, navigateTo: () -> Unit) {
         when (event) {
             is PinpadButtonUiEvent.WhenNumberIsDigested -> {
-                _pinpadUiState = if (pinpadUiState.pin.length < 12) {
+                _pinpadUiState = if (pinpadUiState.pin.length < 6) {
                     pinpadUiState.copy(pin = pinpadUiState.pin + event.buttonUiState.value)
                 } else {
                     pinpadUiState.copy()
@@ -145,7 +145,13 @@ open class PaymentViewModel @Inject constructor(
         val pinpadButtonsUiEventUpdated: List<PinpadButtonUiEvent> = pinpadButtonsUiEvent.map(
             transform = { pinpadButtonUiEvent ->
                 when (pinpadButtonUiEvent) {
-                    is PinpadButtonUiEvent.WhenNumberIsDigested -> pinpadButtonUiEvent
+                    is PinpadButtonUiEvent.WhenNumberIsDigested -> {
+                        PinpadButtonUiEvent.WhenNumberIsDigested(
+                            buttonUiState = pinpadButtonUiEvent.buttonUiState.copy(
+                                isEnabled = pinpadUiState.pin.length < 6
+                            )
+                        )
+                    }
                     is PinpadButtonUiEvent.WhenDeleteIsPressed -> {
                         PinpadButtonUiEvent.WhenDeleteIsPressed(
                             buttonUiState = pinpadButtonUiEvent.buttonUiState.copy(
@@ -169,7 +175,7 @@ open class PaymentViewModel @Inject constructor(
         viewModelScope.launch(
             block = {
 
-                delay(500L) // Simula procesamiento
+                delay(1500) // Simula procesamiento
 
                 val validPins = listOf("1234", "0000", "9999") // Lista de PINs válidos
 

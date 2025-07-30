@@ -56,7 +56,7 @@ private fun ContactlessReadingScreenLongPreview() {
                         ),
                         navigateToContactReading = {},
                         navigateToVerificationMethod = {},
-                        navigateToFailedSale = {}
+                        navigateToOutcomeGraph = {}
                     )
                 }
             )
@@ -69,7 +69,7 @@ fun ContactlessReadingScreen(
     paymentViewModel: PaymentViewModel,
     navigateToContactReading: () -> Unit,
     navigateToVerificationMethod: () -> Unit,
-    navigateToFailedSale: () -> Unit
+    navigateToOutcomeGraph: () -> Unit
 ) {
     val contactlessReadingUiState: ReadingUiState by paymentViewModel.contactlessReadingUiState.collectAsStateWithLifecycle()
 
@@ -108,7 +108,7 @@ fun ContactlessReadingScreen(
                                 navigateToContactReading()
                             } else {
                                 TODO("IMPLEMENTAR SALIDA")
-                                navigateToFailedSale()
+                                navigateToOutcomeGraph()
                             }
                         }
                     )
