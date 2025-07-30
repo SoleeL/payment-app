@@ -23,6 +23,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,7 +36,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.soleel.paymentapp.core.common.retryflow.RetryableFlowTrigger
 import com.soleel.paymentapp.core.component.SalesSummaryHeader
 import com.soleel.paymentapp.core.ui.R
 import com.soleel.paymentapp.core.ui.utils.LongDevicePreview
@@ -44,6 +46,7 @@ import com.soleel.paymentapp.domain.payment.RequestValidationPaymentUseCaseMock
 import com.soleel.paymentapp.domain.payment.SavePaymentUseCaseMock
 import com.soleel.paymentapp.feature.salesprocess.payment.PaymentStepUiState
 import com.soleel.paymentapp.feature.salesprocess.payment.PaymentViewModel
+import kotlinx.coroutines.delay
 
 @LongDevicePreview
 @Composable
@@ -62,7 +65,6 @@ private fun ProcessPaymentScreenLongPreview() {
                             requestValidationPaymentUseCase = RequestValidationPaymentUseCaseMock(),
                             requestConfirmationPaymentUseCase = RequestConfirmingPaymentUseCaseMock(),
                             savePaymentUseCase = SavePaymentUseCaseMock(),
-                            retryableFlowTrigger = RetryableFlowTrigger(),
                         ),
                         navigateToOutcomeGraph = {}
                     )
@@ -174,19 +176,31 @@ fun PaymentProcessingChecklist(
     onFinish: () -> Unit = {}
 ) {
     val steps = listOf("Validando pago", "Confirmando pago", "Guardando pago")
+
+    var animatedDots by remember { mutableStateOf("") }
     val currentStepIndex = when (paymentStep) {
         PaymentStepUiState.Idle -> -1
         PaymentStepUiState.Validating -> 0
         PaymentStepUiState.Confirming -> 1
         PaymentStepUiState.Saving -> 2
         PaymentStepUiState.Done -> 3
-        is PaymentStepUiState.Error -> {
-            // Error lo colocamos en el paso donde ocurrió
-            paymentStep.step.ordinal
+        is PaymentStepUiState.Error -> paymentStep.step.ordinal
+    }
+    val isProcessingFinished = currentStepIndex >= steps.size
+
+    // Animar puntos solo si el proceso NO terminó y está en un paso válido (no Idle o Error)
+    LaunchedEffect(currentStepIndex) {
+        if (currentStepIndex in 0 until steps.size && !isProcessingFinished) {
+            while (true) {
+                repeat(4) { i ->
+                    animatedDots = ".".repeat(i)
+                    delay(250)
+                }
+            }
+        } else {
+            animatedDots = ""
         }
     }
-
-    val isProcessingFinished = currentStepIndex >= steps.size
 
     LaunchedEffect(isProcessingFinished) {
         if (isProcessingFinished) {
@@ -198,12 +212,18 @@ fun PaymentProcessingChecklist(
         steps.forEachIndexed { index, step ->
             val prefix = when {
                 index < currentStepIndex -> "[ x ]"
-                index == currentStepIndex && !isProcessingFinished -> "[ > ]"
+                index == currentStepIndex && !isProcessingFinished -> "[  ]"
                 else -> "[  ]"
             }
 
+            val text = if (index == currentStepIndex && !isProcessingFinished) {
+                "$prefix $step$animatedDots"
+            } else {
+                "$prefix $step"
+            }
+
             Text(
-                text = "$prefix $step",
+                text = text,
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
@@ -220,70 +240,3 @@ fun PaymentProcessingChecklist(
         }
     }
 }
-
-//
-//@Composable
-//fun PaymentProcessingChecklist(
-//    modifier: Modifier = Modifier,
-//    onFinish: () -> Unit = {}
-//) {
-//    val steps = listOf(
-//        "Validando pago",
-//        "Confirmando pago",
-//        "Guardando pago"
-//    )
-//
-//    var currentStepIndex by remember { mutableIntStateOf(0) }
-//    var animatedDots by remember { mutableStateOf("") }
-//    var isProcessingFinished by remember { mutableStateOf(false) }
-//
-//    LaunchedEffect(currentStepIndex) {
-//        if (currentStepIndex < steps.size) {
-//            while (true) {
-//                repeat(4) { i ->
-//                    animatedDots = ".".repeat(i)
-//                    delay(250)
-//                }
-//            }
-//        }
-//    }
-//
-//    LaunchedEffect(animatedDots) {
-//        if (animatedDots == "...") {
-//            delay(250)
-//            if (currentStepIndex < steps.size) {
-//                currentStepIndex++
-//                if (currentStepIndex == steps.size) {
-//                    isProcessingFinished = true
-//                    onFinish()
-//                }
-//            }
-//        }
-//    }
-//
-//    Column(
-//        modifier = modifier
-//            .fillMaxWidth(),
-//        content = {
-//            steps.forEachIndexed { index, step ->
-//                val prefix = when {
-//                    index < currentStepIndex -> "[ x ]"
-//                    index == currentStepIndex -> "[  ]"
-//                    else -> "[  ]"
-//                }
-//
-//                val text = if (index == currentStepIndex && !isProcessingFinished) {
-//                    "$prefix $step$animatedDots"
-//                } else {
-//                    "$prefix $step"
-//                }
-//
-//                Text(
-//                    text = text,
-//                    style = MaterialTheme.typography.titleLarge,
-//                    modifier = Modifier.padding(vertical = 8.dp)
-//                )
-//            }
-//        }
-//    )
-//}

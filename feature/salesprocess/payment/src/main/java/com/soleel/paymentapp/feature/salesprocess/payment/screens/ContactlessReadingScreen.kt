@@ -27,7 +27,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.soleel.paymentapp.core.common.retryflow.RetryableFlowTrigger
 import com.soleel.paymentapp.core.component.SalesSummaryHeader
 import com.soleel.paymentapp.core.ui.R
 import com.soleel.paymentapp.core.ui.utils.LongDevicePreview
@@ -60,7 +59,6 @@ private fun ContactlessReadingScreenLongPreview() {
                             requestValidationPaymentUseCase = RequestValidationPaymentUseCaseMock(),
                             requestConfirmationPaymentUseCase = RequestConfirmingPaymentUseCaseMock(),
                             savePaymentUseCase = SavePaymentUseCaseMock(),
-                            retryableFlowTrigger = RetryableFlowTrigger(),
                         ),
                         navigateToContactReading = {},
                         navigateToVerificationMethod = {},

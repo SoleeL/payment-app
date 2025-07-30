@@ -8,7 +8,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.soleel.paymentapp.core.common.result.Result
 import com.soleel.paymentapp.core.common.result.asResult
-import com.soleel.paymentapp.core.common.retryflow.RetryableFlowTrigger
 import com.soleel.paymentapp.core.model.Sale
 import com.soleel.paymentapp.core.model.paymentprocess.ConfirmationPaymentProcessData
 import com.soleel.paymentapp.core.model.paymentprocess.PaymentProcessData
@@ -22,6 +21,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -80,7 +81,6 @@ open class PaymentViewModel @Inject constructor(
     private val requestValidationPaymentUseCase: IRequestValidationPaymentUseCase,
     private val requestConfirmationPaymentUseCase: IRequestConfirmingPaymentUseCase,
     private val savePaymentUseCase: ISavePaymentUseCase,
-    private val retryableFlowTrigger: RetryableFlowTrigger,
 ) : ViewModel() {
     val sale: Sale = savedStateHandle.get<Sale>("sale") ?: Sale(calculatorTotal = 0f)
 
@@ -240,7 +240,7 @@ open class PaymentViewModel @Inject constructor(
         }
     }
 
-    val validatingPaymentProcessUiState: StateFlow<PaymentProcessUiState<ValidationPaymentProcessData>> =
+    private val validatingPaymentProcessUiState: StateFlow<PaymentProcessUiState<ValidationPaymentProcessData>> =
         _validatingPaymentProcessUiState
             .stateIn(
                 scope = viewModelScope,
@@ -264,7 +264,7 @@ open class PaymentViewModel @Inject constructor(
         }
     }
 
-    val confirmingPaymentProcessUiState: StateFlow<PaymentProcessUiState<ConfirmationPaymentProcessData>> =
+    private val confirmingPaymentProcessUiState: StateFlow<PaymentProcessUiState<ConfirmationPaymentProcessData>> =
         _confirmingPaymentProcessUiState
             .stateIn(
                 scope = viewModelScope,
@@ -272,7 +272,8 @@ open class PaymentViewModel @Inject constructor(
                 initialValue = PaymentProcessUiState.Loading
             )
 
-    private val _savingPaymentProcessUiState: Flow<PaymentProcessUiState<PaymentProcessData>> = savePaymentUseCase()
+    private val _savingPaymentProcessUiState: Flow<PaymentProcessUiState<PaymentProcessData>> =
+        savePaymentUseCase()
             .asResult()
             .map(transform = { this.getPaymentProcessData(it) })
 
@@ -295,7 +296,8 @@ open class PaymentViewModel @Inject constructor(
                 initialValue = PaymentProcessUiState.Loading
             )
 
-    private val _paymentStepUiState: MutableStateFlow<PaymentStepUiState> = MutableStateFlow<PaymentStepUiState>(PaymentStepUiState.Idle)
+    private val _paymentStepUiState: MutableStateFlow<PaymentStepUiState> =
+        MutableStateFlow<PaymentStepUiState>(PaymentStepUiState.Idle)
     val paymentStepUiState: StateFlow<PaymentStepUiState> = _paymentStepUiState
 
     fun startPaymentProcess() {
@@ -303,7 +305,9 @@ open class PaymentViewModel @Inject constructor(
             _paymentStepUiState.value = PaymentStepUiState.Validating
 
             val validatingPaymentProcessResult: PaymentProcessUiState<ValidationPaymentProcessData> =
-                validatingPaymentProcessUiState.value
+                validatingPaymentProcessUiState
+                    .filter(predicate = { it !is PaymentProcessUiState.Loading })
+                    .first()
 
             if (validatingPaymentProcessResult !is PaymentProcessUiState.Success) {
                 val errorMessage: String? =
@@ -318,7 +322,9 @@ open class PaymentViewModel @Inject constructor(
             _paymentStepUiState.value = PaymentStepUiState.Confirming
 
             val confirmingPaymentProcessResult: PaymentProcessUiState<ConfirmationPaymentProcessData> =
-                confirmingPaymentProcessUiState.value
+                confirmingPaymentProcessUiState
+                    .filter(predicate = { it !is PaymentProcessUiState.Loading })
+                    .first()
 
             if (confirmingPaymentProcessResult !is PaymentProcessUiState.Success) {
                 val errorMessage: String? =
@@ -332,7 +338,10 @@ open class PaymentViewModel @Inject constructor(
 
             _paymentStepUiState.value = PaymentStepUiState.Saving
 
-            val savingPaymentProcessResult = savingPaymentProcessUiState.value
+            val savingPaymentProcessResult: PaymentProcessUiState<PaymentProcessData> =
+                savingPaymentProcessUiState
+                    .filter(predicate = { it !is PaymentProcessUiState.Loading })
+                    .first()
 
             if (savingPaymentProcessResult !is PaymentProcessUiState.Success) {
                 val errorMessage: String? =

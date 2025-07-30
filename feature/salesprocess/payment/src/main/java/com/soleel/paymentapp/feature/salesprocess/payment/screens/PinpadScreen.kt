@@ -28,7 +28,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.SavedStateHandle
-import com.soleel.paymentapp.core.common.retryflow.RetryableFlowTrigger
 import com.soleel.paymentapp.core.component.SalesSummaryHeader
 import com.soleel.paymentapp.core.ui.utils.LongDevicePreview
 import com.soleel.paymentapp.core.ui.utils.WithFakeSystemBars
@@ -54,7 +53,6 @@ private fun CashChangeCalculatorScreenLongPreview() {
         requestValidationPaymentUseCase = RequestValidationPaymentUseCaseMock(),
         requestConfirmationPaymentUseCase = RequestConfirmingPaymentUseCaseMock(),
         savePaymentUseCase = SavePaymentUseCaseMock(),
-        retryableFlowTrigger = RetryableFlowTrigger(),
     )
 
     WithFakeSystemBars(
