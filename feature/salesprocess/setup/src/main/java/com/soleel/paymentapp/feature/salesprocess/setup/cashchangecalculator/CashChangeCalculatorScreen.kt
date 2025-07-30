@@ -133,35 +133,3 @@ fun CashChangeCalculatorScreen(
         }
     )
 }
-
-@Composable
-fun CalculatorButton(
-    modifier: Modifier,
-    value: String,
-    isEnabled: Boolean,
-    isNumber: Boolean,
-    onClick: () -> Unit
-) {
-    Button(
-        onClick = onClick,
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(4.dp),
-        enabled = isEnabled,
-        shape = CircleShape,
-        colors = if (isNumber) {
-            ButtonDefaults.buttonColors()
-        } else {
-            ButtonDefaults.buttonColors(
-                containerColor = Color.DarkGray,
-                contentColor = Color.White
-            )
-        },
-        content = {
-            Text(
-                text = value,
-                style = MaterialTheme.typography.headlineLarge,
-            )
-        }
-    )
-}

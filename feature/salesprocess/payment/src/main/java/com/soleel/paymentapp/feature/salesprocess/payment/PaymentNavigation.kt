@@ -82,7 +82,6 @@ fun PaymentScreen(
         currentDestination?.hasRoute(ContactlessReading::class) == true
 
     val contactlessReadingUiState: ReadingUiState by paymentViewModel.contactlessReadingUiState.collectAsStateWithLifecycle()
-    val contactReadingUiState: ReadingUiState by paymentViewModel.contactReadingUiState.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -90,21 +89,45 @@ fun PaymentScreen(
                 title = { }, // README: Si se borra el content no es detectado
                 modifier = Modifier.background(Color.DarkGray),
                 actions = {
-                    if (contactlessReadingUiState is ReadingUiState.Reading ||
-                        contactReadingUiState is ReadingUiState.Reading
-                    ) {
-                        Surface(
-                            modifier = Modifier.padding(16.dp, 2.dp),
-                            onClick = {
-                                backToPrevious()
-                            },
-                            content = {
-                                Text(
-                                    text = "Cancelar",
-                                    style = MaterialTheme.typography.titleMedium,
+                    when (contactlessReadingUiState) {
+                        is ReadingUiState.Reading -> {
+                            Surface(
+                                modifier = Modifier.padding(16.dp, 2.dp),
+                                onClick = {
+                                    backToPrevious()
+                                },
+                                content = {
+                                    Text(
+                                        text = "Cancelar",
+                                        style = MaterialTheme.typography.titleMedium,
+                                    )
+                                }
+                            )
+                        }
+                        is ReadingUiState.Success -> {}
+                        is ReadingUiState.Failure -> {
+                            // README: Es importante llamar a paymentViewModel.contactReadingUiState
+                            // aqui, ya que si se invoca antes, el flow se invocara y el timer no
+                            // funcionara bien
+                            val contactReadingUiState: ReadingUiState by paymentViewModel.contactReadingUiState.collectAsStateWithLifecycle()
+
+                            when (contactReadingUiState) {
+                                is ReadingUiState.Reading -> Surface(
+                                    modifier = Modifier.padding(16.dp, 2.dp),
+                                    onClick = {
+                                        backToPrevious()
+                                    },
+                                    content = {
+                                        Text(
+                                            text = "Cancelar",
+                                            style = MaterialTheme.typography.titleMedium,
+                                        )
+                                    }
                                 )
+                                is ReadingUiState.Success,
+                                is ReadingUiState.Failure -> {}
                             }
-                        )
+                        }
                     }
                 }
             )
@@ -112,14 +135,16 @@ fun PaymentScreen(
         content = { paddingValues ->
             NavHost(
                 navController = navHostController,
-                startDestination = ContactReading,
+                startDestination = ContactlessReading,
                 modifier = Modifier.padding(paddingValues),
                 builder = {
                     composable<ContactlessReading>(
                         content = {
                             ContactlessReadingScreen(
                                 paymentViewModel = paymentViewModel,
-                                navigateToVerificationMethod = { navHostController.navigate(Pinpad) }
+                                navigateToContactReading = { navHostController.navigate(ContactReading)},
+                                navigateToVerificationMethod = { navHostController.navigate(Pinpad) },
+                                navigateToFailedSale = { }
                             )
                         }
                     )
@@ -135,7 +160,12 @@ fun PaymentScreen(
 
                     composable<Pinpad>(
                         content = {
-                            PinpadScreen()
+                            PinpadScreen(
+                                paymentViewModel = paymentViewModel,
+                                onCancel = backToPrevious,
+                                navigateToFailedSale = { },
+                                navigateToRegisterPayment = { }
+                            )
                         }
                     )
 

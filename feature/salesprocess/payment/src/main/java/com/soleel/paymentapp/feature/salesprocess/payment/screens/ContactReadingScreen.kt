@@ -17,6 +17,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,6 +39,7 @@ import com.soleel.paymentapp.feature.salesprocess.payment.PaymentViewModel
 import com.soleel.paymentapp.feature.salesprocess.payment.ReadingUiState
 import com.soleel.paymentapp.feature.salesprocess.payment.component.FailurePrompt
 import com.soleel.paymentapp.feature.salesprocess.payment.component.SuccessPrompt
+import kotlinx.coroutines.delay
 
 @LongDevicePreview
 @Composable
@@ -84,7 +86,16 @@ fun ContactReadingScreen(
 
             when (contactReadingUiState) {
                 ReadingUiState.Reading -> ContactReaderPrompt()
-                ReadingUiState.Success -> SuccessPrompt()
+                ReadingUiState.Success -> {
+                    LaunchedEffect(
+                        key1 = Unit,
+                        block = {
+                            delay(timeMillis = 1000)
+                            navigateToVerificationMethod()
+                        }
+                    )
+                    SuccessPrompt()
+                }
                 ReadingUiState.Failure -> FailurePrompt()
             }
         }
