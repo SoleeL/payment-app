@@ -35,13 +35,23 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.soleel.paymentapp.core.common.retryflow.RetryableFlowTrigger
 import com.soleel.paymentapp.core.component.SalesSummaryHeader
+import com.soleel.paymentapp.core.model.paymentprocess.ConfirmationPaymentProcessData
+import com.soleel.paymentapp.core.model.paymentprocess.PaymentProcessData
+import com.soleel.paymentapp.core.model.paymentprocess.ValidationPaymentProcessData
 import com.soleel.paymentapp.core.ui.utils.LongDevicePreview
 import com.soleel.paymentapp.core.ui.utils.WithFakeSystemBars
 import com.soleel.paymentapp.core.ui.utils.WithFakeTopAppBar
 import com.soleel.paymentapp.feature.salesprocess.payment.PaymentViewModel
 import kotlinx.coroutines.delay
 import com.soleel.paymentapp.core.ui.R
+import com.soleel.paymentapp.domain.payment.ISavePaymentUseCase
+import com.soleel.paymentapp.domain.payment.RequestConfirmingPaymentUseCaseMock
+import com.soleel.paymentapp.domain.payment.RequestValidationPaymentUseCaseMock
+import com.soleel.paymentapp.domain.payment.SavePaymentUseCaseMock
+import com.soleel.paymentapp.feature.salesprocess.payment.PaymentProcessUiState
 
 @LongDevicePreview
 @Composable
@@ -56,7 +66,11 @@ private fun ProcessPaymentScreenLongPreview() {
                 content = {
                     ProcessPaymentScreen(
                         paymentViewModel = PaymentViewModel(
-                            savedStateHandle = fakeSavedStateHandle
+                            savedStateHandle = fakeSavedStateHandle,
+                            requestValidationPaymentUseCase = RequestValidationPaymentUseCaseMock(),
+                            requestConfirmationPaymentUseCase = RequestConfirmingPaymentUseCaseMock(),
+                            savePaymentUseCase = SavePaymentUseCaseMock(),
+                            retryableFlowTrigger = RetryableFlowTrigger(),
                         ),
                         navigateToOutcomeGraph = {}
                     )
@@ -71,6 +85,11 @@ fun ProcessPaymentScreen(
     paymentViewModel: PaymentViewModel,
     navigateToOutcomeGraph: () -> Unit
 ) {
+
+    val validationState by paymentViewModel.validatingPaymentProcessUiState.collectAsStateWithLifecycle()
+    val confirmationState by paymentViewModel.confirmingPaymentProcessUiState.collectAsStateWithLifecycle()
+    val savingState by paymentViewModel.savingPaymentProcessUiState.collectAsStateWithLifecycle()
+
     Column(
         modifier = Modifier
             .padding(16.dp)
@@ -86,7 +105,12 @@ fun ProcessPaymentScreen(
                 debitChangeSelected = paymentViewModel.sale.debitChangeSelected
             )
             AdBanner()
-            PaymentProcessingChecklist()
+            PaymentProcessingChecklist(
+                validationState = validationState,
+                confirmationState = confirmationState,
+                savingState = savingState,
+                onFinish = { navigateToOutcomeGraph() }
+            )
         }
     )
 }
@@ -100,117 +124,161 @@ fun AdBanner(
         modifier = modifier
             .fillMaxWidth()
             .wrapContentHeight()
-            .clip(RoundedCornerShape(16.dp))
-    ) {
-        Image(
-            painter = painterResource(id = R.drawable.ad_deinn),
-            contentDescription = "Publicidad durante procesamiento",
-            modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight()
-                .align(Alignment.Center),
-            contentScale = ContentScale.FillWidth
-        )
+            .clip(RoundedCornerShape(16.dp)),
+        content = {
+            Image(
+                painter = painterResource(id = R.drawable.ad_deinn),
+                contentDescription = "Publicidad durante procesamiento",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .align(Alignment.Center),
+                contentScale = ContentScale.FillWidth
+            )
 
-        IconButton(
-            onClick = onClose,
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(8.dp)
-                .background(
-                    color = Color.Black.copy(alpha = 0.4f),
-                    shape = CircleShape
-                )
-                .size(24.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Close,
-                contentDescription = "Cerrar anuncio",
-                tint = Color.White,
-                modifier = Modifier.size(16.dp)
+            IconButton(
+                onClick = onClose,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(8.dp)
+                    .background(
+                        color = Color.Black.copy(alpha = 0.4f),
+                        shape = CircleShape
+                    )
+                    .size(24.dp),
+                content = {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Cerrar anuncio",
+                        tint = Color.White,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            )
+
+            Text(
+                text = "Ads by Google",
+                style = MaterialTheme.typography.labelSmall.copy(
+                    color = Color.White,
+                    fontSize = 10.sp
+                ),
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(start = 8.dp, bottom = 8.dp)
+                    .background(
+                        color = Color.Black.copy(alpha = 0.4f),
+                        shape = RoundedCornerShape(4.dp)
+                    )
+                    .padding(horizontal = 6.dp, vertical = 2.dp)
             )
         }
-
-        Text(
-            text = "Ads by Google",
-            style = MaterialTheme.typography.labelSmall.copy(
-                color = Color.White,
-                fontSize = 10.sp
-            ),
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-                .padding(start = 8.dp, bottom = 8.dp)
-                .background(
-                    color = Color.Black.copy(alpha = 0.4f),
-                    shape = RoundedCornerShape(4.dp)
-                )
-                .padding(horizontal = 6.dp, vertical = 2.dp)
-        )
-    }
+    )
 }
 
 @Composable
 fun PaymentProcessingChecklist(
     modifier: Modifier = Modifier,
+    validationState: PaymentProcessUiState<ValidationPaymentProcessData>,
+    confirmationState: PaymentProcessUiState<ConfirmationPaymentProcessData>,
+    savingState: PaymentProcessUiState<PaymentProcessData>,
     onFinish: () -> Unit = {}
 ) {
-    val steps = listOf(
-        "Validando pago",
-        "Confirmando pago",
-        "Registrando transacción"
-    )
+    val steps = listOf("Validando pago", "Confirmando pago", "Guardando pago")
+    val currentStepIndex = when {
+        validationState is PaymentProcessUiState.Loading -> 0
+        confirmationState is PaymentProcessUiState.Loading -> 1
+        savingState is PaymentProcessUiState.Loading -> 2
+        else -> 3
+    }
 
-    var currentStepIndex by remember { mutableIntStateOf(0) }
-    var animatedDots by remember { mutableStateOf("") }
-    var isProcessingFinished by remember { mutableStateOf(false) }
+    val isProcessingFinished = currentStepIndex >= steps.size
 
-    LaunchedEffect(currentStepIndex) {
-        if (currentStepIndex < steps.size) {
-            while (true) {
-                repeat(2) { i ->
-                    animatedDots = ".".repeat(i)
-                    delay(500)
-                }
-            }
+    LaunchedEffect(isProcessingFinished) {
+        if (isProcessingFinished) {
+            onFinish()
         }
     }
 
-    LaunchedEffect(animatedDots) {
-        if (animatedDots == "...") {
-            delay(500)
-            if (currentStepIndex < steps.size) {
-                currentStepIndex++
-                if (currentStepIndex == steps.size) {
-                    isProcessingFinished = true
-                    onFinish()
-                }
+    Column(modifier = modifier.fillMaxWidth()) {
+        steps.forEachIndexed { index, step ->
+            val prefix = when {
+                index < currentStepIndex -> "[ x ]"
+                index == currentStepIndex && !isProcessingFinished -> "[ > ]"
+                else -> "[  ]"
             }
+
+            Text(
+                text = "$prefix $step",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
         }
     }
-
-    Column(
-        modifier = modifier
-            .fillMaxWidth(),
-        content ={
-            steps.forEachIndexed { index, step ->
-                val prefix = when {
-                    index < currentStepIndex -> "[ x ]"
-                    index == currentStepIndex -> "[  ]"
-                    else -> "[  ]"
-                }
-
-                val text = if (index == currentStepIndex && !isProcessingFinished){
-                    "$prefix $step$animatedDots"
-                } else {
-                    "$prefix $step"
-                }
-
-                Text(
-                    text = text,
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-            }
-        }
-    )
 }
+
+//
+//@Composable
+//fun PaymentProcessingChecklist(
+//    modifier: Modifier = Modifier,
+//    onFinish: () -> Unit = {}
+//) {
+//    val steps = listOf(
+//        "Validando pago",
+//        "Confirmando pago",
+//        "Guardando pago"
+//    )
+//
+//    var currentStepIndex by remember { mutableIntStateOf(0) }
+//    var animatedDots by remember { mutableStateOf("") }
+//    var isProcessingFinished by remember { mutableStateOf(false) }
+//
+//    LaunchedEffect(currentStepIndex) {
+//        if (currentStepIndex < steps.size) {
+//            while (true) {
+//                repeat(4) { i ->
+//                    animatedDots = ".".repeat(i)
+//                    delay(250)
+//                }
+//            }
+//        }
+//    }
+//
+//    LaunchedEffect(animatedDots) {
+//        if (animatedDots == "...") {
+//            delay(250)
+//            if (currentStepIndex < steps.size) {
+//                currentStepIndex++
+//                if (currentStepIndex == steps.size) {
+//                    isProcessingFinished = true
+//                    onFinish()
+//                }
+//            }
+//        }
+//    }
+//
+//    Column(
+//        modifier = modifier
+//            .fillMaxWidth(),
+//        content = {
+//            steps.forEachIndexed { index, step ->
+//                val prefix = when {
+//                    index < currentStepIndex -> "[ x ]"
+//                    index == currentStepIndex -> "[  ]"
+//                    else -> "[  ]"
+//                }
+//
+//                val text = if (index == currentStepIndex && !isProcessingFinished) {
+//                    "$prefix $step$animatedDots"
+//                } else {
+//                    "$prefix $step"
+//                }
+//
+//                Text(
+//                    text = text,
+//                    style = MaterialTheme.typography.titleLarge,
+//                    modifier = Modifier.padding(vertical = 8.dp)
+//                )
+//            }
+//        }
+//    )
+//}

@@ -20,13 +20,15 @@ rootProject.name = "paymentapp"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 include(":app")
 
+include(":core:common")
 include(":core:component")
 include(":core:model")
 include(":core:navigation")
 include(":core:ui")
 
-include(":feature:home")
+include(":domain:payment")
 
+include(":feature:home")
 include(":feature:salesprocess:setup")
 include(":feature:salesprocess:payment")
 include(":feature:salesprocess:outcome")

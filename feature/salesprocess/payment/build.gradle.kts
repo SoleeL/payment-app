@@ -9,7 +9,10 @@ android {
 }
 
 dependencies {
+    implementation(projects.core.common)
     implementation(projects.core.component)
     implementation(projects.core.model)
     implementation(projects.core.ui)
+
+    implementation(projects.domain.payment)
 }

@@ -29,10 +29,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.SavedStateHandle
+import com.soleel.paymentapp.core.common.retryflow.RetryableFlowTrigger
 import com.soleel.paymentapp.core.component.SalesSummaryHeader
 import com.soleel.paymentapp.core.ui.utils.LongDevicePreview
 import com.soleel.paymentapp.core.ui.utils.WithFakeSystemBars
 import com.soleel.paymentapp.core.ui.utils.WithFakeTopAppBar
+import com.soleel.paymentapp.domain.payment.RequestConfirmingPaymentUseCaseMock
+import com.soleel.paymentapp.domain.payment.RequestValidationPaymentUseCaseMock
+import com.soleel.paymentapp.domain.payment.SavePaymentUseCaseMock
 import com.soleel.paymentapp.feature.salesprocess.payment.ConfirmingPinUiState
 import com.soleel.paymentapp.feature.salesprocess.payment.PinpadButtonUiEvent
 import com.soleel.paymentapp.feature.salesprocess.payment.PaymentViewModel
@@ -47,8 +51,13 @@ private fun CashChangeCalculatorScreenLongPreview() {
         mapOf("calculatorTotal" to 7000f)
     )
 
-    val paymentViewModel: PaymentViewModel =
-        PaymentViewModel(savedStateHandle = fakeSavedStateHandle)
+    val paymentViewModel: PaymentViewModel = PaymentViewModel(
+        savedStateHandle = fakeSavedStateHandle,
+        requestValidationPaymentUseCase = RequestValidationPaymentUseCaseMock(),
+        requestConfirmationPaymentUseCase = RequestConfirmingPaymentUseCaseMock(),
+        savePaymentUseCase = SavePaymentUseCaseMock(),
+        retryableFlowTrigger = RetryableFlowTrigger(),
+    )
 
     WithFakeSystemBars(
         content = {

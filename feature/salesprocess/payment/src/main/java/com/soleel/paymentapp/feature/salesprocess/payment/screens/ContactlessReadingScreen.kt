@@ -27,11 +27,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.soleel.paymentapp.core.common.retryflow.RetryableFlowTrigger
 import com.soleel.paymentapp.core.component.SalesSummaryHeader
 import com.soleel.paymentapp.core.ui.R
 import com.soleel.paymentapp.core.ui.utils.LongDevicePreview
 import com.soleel.paymentapp.core.ui.utils.WithFakeSystemBars
 import com.soleel.paymentapp.core.ui.utils.WithFakeTopAppBar
+import com.soleel.paymentapp.domain.payment.RequestConfirmingPaymentUseCaseMock
+import com.soleel.paymentapp.domain.payment.RequestValidationPaymentUseCaseMock
+import com.soleel.paymentapp.domain.payment.SavePaymentUseCaseMock
 import com.soleel.paymentapp.feature.salesprocess.payment.PaymentViewModel
 import com.soleel.paymentapp.feature.salesprocess.payment.ReadingUiState
 import com.soleel.paymentapp.feature.salesprocess.payment.component.FailurePrompt
@@ -52,7 +56,11 @@ private fun ContactlessReadingScreenLongPreview() {
                 content = {
                     ContactlessReadingScreen(
                         paymentViewModel = PaymentViewModel(
-                            savedStateHandle = fakeSavedStateHandle
+                            savedStateHandle = fakeSavedStateHandle,
+                            requestValidationPaymentUseCase = RequestValidationPaymentUseCaseMock(),
+                            requestConfirmationPaymentUseCase = RequestConfirmingPaymentUseCaseMock(),
+                            savePaymentUseCase = SavePaymentUseCaseMock(),
+                            retryableFlowTrigger = RetryableFlowTrigger(),
                         ),
                         navigateToContactReading = {},
                         navigateToVerificationMethod = {},
