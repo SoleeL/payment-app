@@ -30,6 +30,15 @@ sealed class SalesProcessUiEvent {
         SalesProcessUiEvent()
 
     data class DebitChangeSelected(val debitChangeSelected: Float?) : SalesProcessUiEvent()
+
+    // TODO:
+
+    // last 4
+    // marca
+
+    // sequence number de pago
+
+    // uuid de la venta
 }
 
 @HiltViewModel

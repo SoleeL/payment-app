@@ -43,7 +43,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navOptions
-import com.soleel.paymentapp.core.model.enums.DeveloperPreferenceKey
+import com.soleel.paymentapp.core.model.enums.DeveloperPreferenceEnum
 import com.soleel.paymentapp.core.ui.R
 import com.soleel.paymentapp.core.ui.utils.LongDevicePreview
 import com.soleel.paymentapp.core.ui.utils.WithFakeSystemBars
@@ -222,19 +222,19 @@ fun HomeScreen(
 private fun DeveloperPreferencesScreenLongPreview() {
     val fakeToggles = listOf(
         DeveloperToggleUiState(
-            developerPreferenceKey = DeveloperPreferenceKey.CONTACTLESS_READER_FALLBACK,
+            developerPreferenceKey = DeveloperPreferenceEnum.CONTACTLESS_READER_FALLBACK,
             isEnabled = true
         ),
         DeveloperToggleUiState(
-            developerPreferenceKey = DeveloperPreferenceKey.CONTACTLESS_READER_INVALID_CARD,
+            developerPreferenceKey = DeveloperPreferenceEnum.CONTACTLESS_READER_INVALID_CARD,
             isEnabled = false
         ),
         DeveloperToggleUiState(
-            developerPreferenceKey = DeveloperPreferenceKey.CONTACTLESS_READER_OTHER_ERROR,
+            developerPreferenceKey = DeveloperPreferenceEnum.CONTACTLESS_READER_OTHER_ERROR,
             isEnabled = true
         ),
         DeveloperToggleUiState(
-            developerPreferenceKey = DeveloperPreferenceKey.PAYMENT_CONFIRMATION_FAIL_BY_AUTH_ERROR,
+            developerPreferenceKey = DeveloperPreferenceEnum.PAYMENT_CONFIRMATION_FAIL_BY_AUTH_ERROR,
             isEnabled = true
         )
     )

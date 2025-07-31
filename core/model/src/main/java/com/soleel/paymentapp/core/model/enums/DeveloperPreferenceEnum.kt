@@ -1,6 +1,6 @@
 package com.soleel.paymentapp.core.model.enums
 
-enum class DeveloperPreferenceKey(
+enum class DeveloperPreferenceEnum(
     val key: String,
     val displayName: String,
     val displayDescription: String,
@@ -84,7 +84,7 @@ enum class DeveloperPreferenceKey(
     );
 
     companion object {
-        fun fromKey(key: String): DeveloperPreferenceKey? =
+        fun fromKey(key: String): DeveloperPreferenceEnum? =
             entries.firstOrNull { it.key == key }
     }
 }

@@ -74,13 +74,11 @@ fun CreditInstalmentsSelectionScreen(
                             val isWithout = instalmentUiEvent is InstalmentUiEvent.WhenIsWithout
 
                             val buttonColors = if (isWithout) {
-                                // Colores más resaltados
                                 ButtonDefaults.buttonColors(
                                     containerColor = MaterialTheme.colorScheme.primary,
                                     contentColor = MaterialTheme.colorScheme.onPrimary
                                 )
                             } else {
-                                // Colores claros
                                 ButtonDefaults.buttonColors(
                                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
                                     contentColor = MaterialTheme.colorScheme.onSurfaceVariant

@@ -1,11 +1,12 @@
 package com.soleel.paymentapp.core.model.enums
 
+import androidx.annotation.DrawableRes
 import com.soleel.paymentapp.core.ui.R
 
 enum class PaymentMethodEnum(
     val id: Int,
     val value: String,
-    val icon: Int
+    @DrawableRes val icon: Int
 ) {
 
     CASH(id = 1, value = "Efectivo", icon = R.drawable.ic_payment_method_cash),

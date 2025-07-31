@@ -1,6 +1,6 @@
 package com.soleel.paymentapp.domain.reading
 
-import com.soleel.paymentapp.core.model.enums.DeveloperPreferenceKey
+import com.soleel.paymentapp.core.model.enums.DeveloperPreferenceEnum
 import com.soleel.paymentapp.core.model.readingprocess.InterfaceReadData
 import com.soleel.paymentapp.data.preferences.developer.IDeveloperPreferences
 import dagger.Binds
@@ -33,9 +33,9 @@ class ContactlessReadingUseCaseMock @Inject constructor(
     override fun invoke(): Flow<InterfaceReadData> = flow {
         delay(5000)
 
-        val fallbackEnabled = developerPreferences.isEnabled(DeveloperPreferenceKey.CONTACTLESS_READER_FALLBACK)
-        val invalidCardEnabled = developerPreferences.isEnabled(DeveloperPreferenceKey.CONTACTLESS_READER_INVALID_CARD)
-        val genericErrorEnabled = developerPreferences.isEnabled(DeveloperPreferenceKey.CONTACTLESS_READER_OTHER_ERROR)
+        val fallbackEnabled = developerPreferences.isEnabled(DeveloperPreferenceEnum.CONTACTLESS_READER_FALLBACK)
+        val invalidCardEnabled = developerPreferences.isEnabled(DeveloperPreferenceEnum.CONTACTLESS_READER_INVALID_CARD)
+        val genericErrorEnabled = developerPreferences.isEnabled(DeveloperPreferenceEnum.CONTACTLESS_READER_OTHER_ERROR)
 
         when {
             fallbackEnabled -> throw InterfaceFallbackException()

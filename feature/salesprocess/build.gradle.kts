@@ -19,4 +19,5 @@ dependencies {
 
     implementation(projects.domain.payment)
     implementation(projects.domain.reading)
+    implementation(projects.domain.sale)
 }

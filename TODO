@@ -1,5 +1,8 @@
 # TODO
 
+## Prioridad
+- [ ] Limpiar calculadora al finalizar una venta
+
 ## Alta
 - [X] PaymentTypeSelection: Implementar vista y logica
 - [X] CreditInstallmentsSelection: Implementar vista y logica
@@ -10,8 +13,8 @@
 - [X] ProcessPayment: Implementar vista y logica
 - [X] FailedPayment: Implementar vista y logica
 
-- [ ] RegisterSale: Implementar vista y logica
-- [ ] SuccessfulSale: Implementar vista y logica
+- [X] RegisterSale: Implementar vista y logica
+- [X] SuccessfulSale: Implementar vista y logica
 - [ ] PendingSale: Implementar vista y logica
 - [ ] FailedSale: Implementar vista y logica
 
@@ -31,6 +34,7 @@
 
 - [X] FailedPayment: Eliminar stack al navegar a ella
 - [ ] FailedPayment: Al presionar BackButton presentar Modal de cancelacion
+- [ ] FailedPayment: No se ve el texto del mensaje del error cuando el thema es el claro
 
 - [ ] RegisterSale: Eliminar stack al navegar a ella
 - [ ] RegisterSale: bloquear navegacion de BackButton

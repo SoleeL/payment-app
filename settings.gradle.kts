@@ -34,3 +34,4 @@ include(":domain:reading")
 
 include(":feature:home")
 include(":feature:salesprocess")
+include(":domain:sale")

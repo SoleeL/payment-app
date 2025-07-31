@@ -65,7 +65,10 @@ fun PaymentAppNavigationGraph() {
 
             salesProcessGraph(
                 saleToNavType = mapOf(typeOf<Sale>() to createNavType<Sale>()),
-                backToPrevious = { navHostController.popBackStack<HomeGraph>(inclusive = false) }
+                finalizeSale = {
+                    navHostController.popBackStack(HomeGraph, inclusive = true)
+                    navHostController.navigate(HomeGraph)
+                }
             )
         }
     )

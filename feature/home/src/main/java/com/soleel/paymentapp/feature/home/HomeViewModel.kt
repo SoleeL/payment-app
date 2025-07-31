@@ -2,7 +2,7 @@ package com.soleel.paymentapp.feature.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.soleel.paymentapp.core.model.enums.DeveloperPreferenceKey
+import com.soleel.paymentapp.core.model.enums.DeveloperPreferenceEnum
 import com.soleel.paymentapp.data.preferences.developer.IDeveloperPreferences
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
@@ -15,7 +15,7 @@ import javax.inject.Inject
 
 
 data class DeveloperToggleUiState(
-    val developerPreferenceKey: DeveloperPreferenceKey,
+    val developerPreferenceKey: DeveloperPreferenceEnum,
     var isEnabled: Boolean
 )
 
@@ -33,7 +33,7 @@ open class HomeViewModel @Inject constructor(
         .allPreferencesState
         .map(transform = { getDeveloperTogglesData(it) })
 
-    private fun getDeveloperTogglesData(developerTogglesDataResult: Map<DeveloperPreferenceKey, Boolean>): List<DeveloperToggleUiState> {
+    private fun getDeveloperTogglesData(developerTogglesDataResult: Map<DeveloperPreferenceEnum, Boolean>): List<DeveloperToggleUiState> {
         return developerTogglesDataResult.map(
             transform = { (key, enabled) ->
                 DeveloperToggleUiState(
@@ -48,7 +48,7 @@ open class HomeViewModel @Inject constructor(
         get() = _developerTogglesUiState.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = DeveloperPreferenceKey.entries.map { key ->
+            initialValue = DeveloperPreferenceEnum.entries.map { key ->
                 DeveloperToggleUiState(key, key.defaultIsEnabled)
             }
         )

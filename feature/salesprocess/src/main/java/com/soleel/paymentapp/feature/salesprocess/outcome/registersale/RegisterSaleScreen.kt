@@ -1,4 +1,4 @@
-package com.soleel.paymentapp.feature.salesprocess.payment.registerpayment
+package com.soleel.paymentapp.feature.salesprocess.outcome.registersale
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,42 +17,27 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.soleel.paymentapp.core.model.Sale
-import com.soleel.paymentapp.core.model.paymentprocess.PaymentResult
-import com.soleel.paymentapp.core.ui.utils.LongDevicePreview
-import com.soleel.paymentapp.core.ui.utils.WithFakeSystemBars
-import com.soleel.paymentapp.core.ui.utils.WithFakeTopAppBar
+import com.soleel.paymentapp.core.model.outcomeprocess.RegisterSaleResult
 import com.soleel.paymentapp.feature.salesprocess.component.AdBanner
 import kotlinx.coroutines.delay
 
-@LongDevicePreview
-@Composable
-private fun ProcessPaymentScreenLongPreview() {
-    WithFakeSystemBars(
-        content = {
-            WithFakeTopAppBar(
-                content = {
-                    ProcessPaymentScreen(
-                        navigateToFailedPayment = { },
-                        navigateToRegisterSale = { _, _ -> },
-                    )
-                }
-            )
-        }
-    )
-}
 
 @Composable
-fun ProcessPaymentScreen(
-    registerPaymentViewModel: RegisterPaymentViewModel = hiltViewModel(),
-    navigateToFailedPayment: () -> Unit,
-    navigateToRegisterSale: (sale: Sale, paymentResult: PaymentResult) -> Unit
+fun RegisterSaleScreen(
+    registerSaleViewModel: RegisterSaleViewModel = hiltViewModel(),
+    whenRegisterSaleIsSuccessful: (RegisterSaleResult) -> Unit,
+    whenRegisterSaleIsPending: (RegisterSaleResult) -> Unit,
+    whenRegisterSaleIsFailed: (RegisterSaleResult) -> Unit
 ) {
     LaunchedEffect(Unit) {
-        registerPaymentViewModel.startPaymentProcess(navigateToRegisterSale)
+        registerSaleViewModel.startPaymentProcess(
+            whenRegisterSaleIsSuccessful,
+            whenRegisterSaleIsPending,
+            whenRegisterSaleIsFailed
+        )
     }
 
-    val paymentStep: PaymentStepUiState by registerPaymentViewModel.paymentStepUiState.collectAsStateWithLifecycle()
+    val saleRegisterStepUiState: SaleRegisterStepUiState by registerSaleViewModel.registerSaleStepUiState.collectAsStateWithLifecycle()
 
     Column(
         modifier = Modifier
@@ -61,25 +46,23 @@ fun ProcessPaymentScreen(
         verticalArrangement = Arrangement.SpaceBetween,
         content = {
             AdBanner()
-
-            PaymentProcessingChecklist(paymentStep = paymentStep)
+            RegisterSaleProcessingChecklist(saleRegisterStepUiState = saleRegisterStepUiState)
         }
     )
+
 }
 
 @Composable
-fun PaymentProcessingChecklist(
-    modifier: Modifier = Modifier,
-    paymentStep: PaymentStepUiState
+fun RegisterSaleProcessingChecklist(
+    saleRegisterStepUiState: SaleRegisterStepUiState
 ) {
-    val steps = listOf("Validando pago", "Confirmando pago", "Guardando pago")
+    val steps = listOf("Almacenando venta", "Registrando venta")
 
     var animatedDots by remember { mutableStateOf("") }
-    val currentStepIndex = when (paymentStep) {
-        PaymentStepUiState.Validating -> 0
-        PaymentStepUiState.Confirming -> 1
-        PaymentStepUiState.Saving -> 2
-        PaymentStepUiState.Done -> 3
+    val currentStepIndex = when (saleRegisterStepUiState) {
+        SaleRegisterStepUiState.Storing -> 0
+        SaleRegisterStepUiState.Recording -> 1
+        SaleRegisterStepUiState.Done -> 2
     }
 
     LaunchedEffect(currentStepIndex) {
@@ -95,7 +78,7 @@ fun PaymentProcessingChecklist(
         }
     }
 
-    Column(modifier = modifier.fillMaxWidth()) {
+    Column(modifier = Modifier.fillMaxWidth()) {
         steps.forEachIndexed { index, step ->
             val prefix = when {
                 index < currentStepIndex -> "[ x ]"

@@ -29,10 +29,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.toRoute
 import com.soleel.paymentapp.core.component.SalesSummaryHeader
 import com.soleel.paymentapp.core.model.Sale
 import com.soleel.paymentapp.core.model.enums.PaymentMethodEnum
+import com.soleel.paymentapp.core.model.outcomeprocess.RegisterSaleResult
 import com.soleel.paymentapp.core.model.paymentprocess.PaymentResult
 import com.soleel.paymentapp.core.navigation.createNavType
 import com.soleel.paymentapp.core.ui.utils.LongDevicePreview
@@ -40,8 +40,8 @@ import com.soleel.paymentapp.core.ui.utils.WithFakeSystemBars
 import com.soleel.paymentapp.core.ui.utils.WithFakeTopAppBar
 import com.soleel.paymentapp.feature.salesprocess.outcome.FailedSaleScreen
 import com.soleel.paymentapp.feature.salesprocess.outcome.PendingSaleScreen
-import com.soleel.paymentapp.feature.salesprocess.outcome.RegisterSaleScreen
-import com.soleel.paymentapp.feature.salesprocess.outcome.SuccessfulSaleScreen
+import com.soleel.paymentapp.feature.salesprocess.outcome.registersale.RegisterSaleScreen
+import com.soleel.paymentapp.feature.salesprocess.outcome.successfulsale.SuccessfulSaleScreen
 import com.soleel.paymentapp.feature.salesprocess.payment.contactlessreading.ContactlessReadingScreen
 import com.soleel.paymentapp.feature.salesprocess.payment.contactreading.ContactReadingScreen
 import com.soleel.paymentapp.feature.salesprocess.payment.failedpayment.FailedPaymentScreen
@@ -73,7 +73,7 @@ private fun SalesProcessScreenLongPreview() {
                             savedStateHandle = fakeSavedStateHandle
                         ),
                         saleToNavType = mapOf(typeOf<Sale>() to createNavType<Sale>()),
-                        backToPrevious = {}
+                        finalizeSale = {}
                     )
                 }
             )
@@ -86,13 +86,13 @@ data class SalesProcessGraph(val calculatorTotal: Float)
 
 fun NavGraphBuilder.salesProcessGraph(
     saleToNavType: Map<KType, NavType<Sale>>,
-    backToPrevious: () -> Unit
+    finalizeSale: () -> Unit
 ) {
     composable<SalesProcessGraph>(
         content = {
             SalesProcessScreen(
                 saleToNavType = saleToNavType,
-                backToPrevious = backToPrevious
+                finalizeSale = finalizeSale
             )
         }
     )
@@ -128,7 +128,6 @@ object ProcessPayment
 @Serializable
 object FailedPayment
 
-
 @Serializable
 data class RegisterSale(val sale: Sale)
 
@@ -157,7 +156,7 @@ fun SalesProcessScreen(
     navHostController: NavHostController = rememberNavController(),
     salesProcessViewModel: SalesProcessViewModel = hiltViewModel(),
     saleToNavType: Map<KType, NavType<Sale>>,
-    backToPrevious: () -> Unit
+    finalizeSale: () -> Unit
 ) {
     val currentDestination: NavDestination? = navHostController.currentBackStackEntryAsState()
         .value?.destination
@@ -175,7 +174,7 @@ fun SalesProcessScreen(
                     IconButton(
                         onClick = {
                             if (isAtStartDestination) {
-                                backToPrevious()
+                                finalizeSale()
                             } else {
                                 navHostController.popBackStack()
                             }
@@ -192,7 +191,7 @@ fun SalesProcessScreen(
                     Surface(
                         modifier = Modifier.padding(16.dp, 2.dp),
                         onClick = {
-                            backToPrevious()
+                            finalizeSale()
                         },
                         content = {
                             Text(
@@ -288,7 +287,7 @@ fun SalesProcessScreen(
                                             navHostController.navigate(
                                                 route = RegisterSale(sale),
                                                 builder = {
-                                                    popUpTo(navHostController.graph.startDestinationId) {
+                                                    popUpTo(0) {
                                                         inclusive = true
                                                     }
                                                     launchSingleTop = true
@@ -307,12 +306,13 @@ fun SalesProcessScreen(
                                             salesProcessViewModel.onSalesProcessUiEvent(
                                                 SalesProcessUiEvent.CreditInstalmentsSelected(it)
                                             )
-                                            val sale: Sale = salesProcessViewModel.salesProcessUiModel
-                                                .toSale()
+                                            val sale: Sale =
+                                                salesProcessViewModel.salesProcessUiModel
+                                                    .toSale()
                                             navHostController.navigate(
                                                 route = ContactlessReading(sale),
                                                 builder = {
-                                                    popUpTo(navHostController.graph.startDestinationId) {
+                                                    popUpTo(0) {
                                                         inclusive = true
                                                     }
                                                     launchSingleTop = true
@@ -336,7 +336,7 @@ fun SalesProcessScreen(
                                             navHostController.navigate(
                                                 route = ContactlessReading(sale),
                                                 builder = {
-                                                    popUpTo(navHostController.graph.startDestinationId) {
+                                                    popUpTo(0) {
                                                         inclusive = true
                                                     }
                                                     launchSingleTop = true
@@ -351,17 +351,15 @@ fun SalesProcessScreen(
 
                             composable<ContactlessReading>(
                                 typeMap = saleToNavType,
-                                content = { // backStackEntry ->
-//                                    val sale: Sale = backStackEntry.toRoute<PaymentGraph>().sale
-//                                    val savedStateHandle: SavedStateHandle =
-//                                        backStackEntry.savedStateHandle
-//                                    savedStateHandle["sale"] = sale
+                                content = {
                                     ContactlessReadingScreen(
                                         navigateToContactReading = {
                                             navHostController.navigate(
                                                 route = ContactReading,
                                                 builder = {
-                                                    popUpTo(navHostController.graph.startDestinationId) {
+                                                    // README: Esto elimina todo el stack y queda el
+                                                    //  nuevo destino en la pila
+                                                    popUpTo(0) {
                                                         inclusive = true
                                                     }
                                                     launchSingleTop = true
@@ -372,7 +370,7 @@ fun SalesProcessScreen(
                                             navHostController.navigate(
                                                 route = Pinpad,
                                                 builder = {
-                                                    popUpTo(navHostController.graph.startDestinationId) {
+                                                    popUpTo(0) {
                                                         inclusive = true
                                                     }
                                                     launchSingleTop = true
@@ -383,7 +381,7 @@ fun SalesProcessScreen(
                                             navHostController.navigate(
                                                 route = FailedPayment,
                                                 builder = {
-                                                    popUpTo(navHostController.graph.startDestinationId) {
+                                                    popUpTo(0) {
                                                         inclusive = true
                                                     }
                                                     launchSingleTop = true
@@ -401,7 +399,7 @@ fun SalesProcessScreen(
                                             navHostController.navigate(
                                                 route = Pinpad,
                                                 builder = {
-                                                    popUpTo(navHostController.graph.startDestinationId) {
+                                                    popUpTo(0) {
                                                         inclusive = true
                                                     }
                                                     launchSingleTop = true
@@ -412,7 +410,7 @@ fun SalesProcessScreen(
                                             navHostController.navigate(
                                                 route = FailedPayment,
                                                 builder = {
-                                                    popUpTo(navHostController.graph.startDestinationId) {
+                                                    popUpTo(0) {
                                                         inclusive = true
                                                     }
                                                     launchSingleTop = true
@@ -426,12 +424,12 @@ fun SalesProcessScreen(
                             composable<Pinpad>(
                                 content = {
                                     PinpadScreen(
-                                        onCancel = backToPrevious,
+                                        onCancel = finalizeSale,
                                         navigateToFailedPayment = {
                                             navHostController.navigate(
                                                 route = FailedPayment,
                                                 builder = {
-                                                    popUpTo(navHostController.graph.startDestinationId) {
+                                                    popUpTo(0) {
                                                         inclusive = true
                                                     }
                                                     launchSingleTop = true
@@ -442,7 +440,7 @@ fun SalesProcessScreen(
                                             navHostController.navigate(
                                                 route = ProcessPayment,
                                                 builder = {
-                                                    popUpTo(navHostController.graph.startDestinationId) {
+                                                    popUpTo(0) {
                                                         inclusive = true
                                                     }
                                                     launchSingleTop = true
@@ -460,7 +458,7 @@ fun SalesProcessScreen(
                                             navHostController.navigate(
                                                 route = FailedPayment,
                                                 builder = {
-                                                    popUpTo(navHostController.graph.startDestinationId) {
+                                                    popUpTo(0) {
                                                         inclusive = true
                                                     }
                                                     launchSingleTop = true
@@ -471,7 +469,7 @@ fun SalesProcessScreen(
                                             navHostController.navigate(
                                                 route = RegisterSale(sale),
                                                 builder = {
-                                                    popUpTo(navHostController.graph.startDestinationId) {
+                                                    popUpTo(0) {
                                                         inclusive = true
                                                     }
                                                     launchSingleTop = true
@@ -486,13 +484,25 @@ fun SalesProcessScreen(
                                 content = {
                                     FailedPaymentScreen(
                                         onRetryPaymentMethod = {
-                                            navHostController.popBackStack<ContactlessReading>(
-                                                inclusive = false
+                                            navHostController.navigate(
+                                                route = ContactlessReading(it),
+                                                builder = {
+                                                    popUpTo(0) {
+                                                        inclusive = true
+                                                    }
+                                                    launchSingleTop = true
+                                                }
                                             )
                                         },
                                         onSelectAnotherPaymentMethod = {
-                                            navHostController.popBackStack<PaymentTypeSelection>(
-                                                inclusive = false
+                                            navHostController.navigate(
+                                                route = PaymentTypeSelection,
+                                                builder = {
+                                                    popUpTo(0) {
+                                                        inclusive = true
+                                                    }
+                                                    launchSingleTop = true
+                                                }
                                             )
                                         }
                                     )
@@ -504,13 +514,49 @@ fun SalesProcessScreen(
                             composable<RegisterSale>(
                                 typeMap = saleToNavType,
                                 content = {
-                                    RegisterSaleScreen()
+                                    RegisterSaleScreen(
+                                        whenRegisterSaleIsSuccessful = { registerSaleResult: RegisterSaleResult ->
+                                            navHostController.navigate(
+                                                route = SuccessfulSale,
+                                                builder = {
+                                                    popUpTo(0) {
+                                                        inclusive = true
+                                                    }
+                                                    launchSingleTop = true
+                                                }
+                                            )
+                                        },
+                                        whenRegisterSaleIsPending = { registerSaleResult: RegisterSaleResult ->
+                                            navHostController.navigate(
+                                                route = PendingSale,
+                                                builder = {
+                                                    popUpTo(0) {
+                                                        inclusive = true
+                                                    }
+                                                    launchSingleTop = true
+                                                }
+                                            )
+                                        },
+                                        whenRegisterSaleIsFailed = { registerSaleResult: RegisterSaleResult ->
+                                            navHostController.navigate(
+                                                route = FailedPayment,
+                                                builder = {
+                                                    popUpTo(0) {
+                                                        inclusive = true
+                                                    }
+                                                    launchSingleTop = true
+                                                }
+                                            )
+                                        },
+                                    )
                                 }
                             )
 
                             composable<SuccessfulSale>(
                                 content = {
-                                    SuccessfulSaleScreen()
+                                    SuccessfulSaleScreen(
+                                        finalizeSale = finalizeSale
+                                    )
                                 }
                             )
 
