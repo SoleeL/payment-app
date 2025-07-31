@@ -36,17 +36,16 @@ import com.soleel.paymentapp.core.ui.R
 import com.soleel.paymentapp.core.ui.utils.LongDevicePreview
 import com.soleel.paymentapp.core.ui.utils.WithFakeSystemBars
 import com.soleel.paymentapp.core.ui.utils.WithFakeTopAppBar
+import com.soleel.paymentapp.data.preferences.developer.DeveloperPreferencesMock
 import com.soleel.paymentapp.domain.payment.RequestConfirmingPaymentUseCaseMock
 import com.soleel.paymentapp.domain.payment.RequestValidationPaymentUseCaseMock
 import com.soleel.paymentapp.domain.payment.SavePaymentUseCaseMock
 import com.soleel.paymentapp.domain.reading.ContactReadingUseCaseMock
 import com.soleel.paymentapp.domain.reading.ContactlessReadingUseCaseMock
-import com.soleel.paymentapp.domain.reading.IContactlessReadingUseCase
 import com.soleel.paymentapp.feature.salesprocess.payment.PaymentViewModel
 import com.soleel.paymentapp.feature.salesprocess.payment.ReadingUiState
 import com.soleel.paymentapp.feature.salesprocess.payment.component.FailurePrompt
 import com.soleel.paymentapp.feature.salesprocess.payment.component.SuccessPrompt
-import kotlinx.coroutines.delay
 
 @LongDevicePreview
 @Composable
@@ -62,14 +61,16 @@ private fun ContactReadingScreenLongPreview() {
                     ContactReadingScreen(
                         paymentViewModel = PaymentViewModel(
                             savedStateHandle = fakeSavedStateHandle,
-                            contactlessReadingUseCase = ContactlessReadingUseCaseMock(),
+                            contactlessReadingUseCase = ContactlessReadingUseCaseMock(
+                                DeveloperPreferencesMock()
+                            ),
                             contactReadingUseCase = ContactReadingUseCaseMock(),
                             requestValidationPaymentUseCase = RequestValidationPaymentUseCaseMock(),
                             requestConfirmationPaymentUseCase = RequestConfirmingPaymentUseCaseMock(),
                             savePaymentUseCase = SavePaymentUseCaseMock(),
                         ),
                         navigateToVerificationMethod = { },
-                        navigateToOutcomeGraph = { }
+                        navigateToFailedPayment = {}
                     )
                 }
             )
@@ -81,13 +82,13 @@ private fun ContactReadingScreenLongPreview() {
 fun ContactReadingScreen(
     paymentViewModel: PaymentViewModel,
     navigateToVerificationMethod: () -> Unit,
-    navigateToOutcomeGraph: (paymentResult: PaymentResult) -> Unit
+    navigateToFailedPayment: () -> Unit,
 ) {
 
     LaunchedEffect(Unit) {
         paymentViewModel.startContactReading(
-            onPaymentResult =  navigateToOutcomeGraph,
-            onVerificationMethod = navigateToVerificationMethod
+            onVerificationMethod = navigateToVerificationMethod,
+            onFailedPayment = navigateToFailedPayment
         )
     }
 
@@ -141,7 +142,7 @@ fun ContactReaderPrompt() {
 
     Box(
         modifier = Modifier.fillMaxSize(),
-        content =  {
+        content = {
             Canvas(
                 modifier = Modifier.fillMaxSize(),
                 onDraw = {

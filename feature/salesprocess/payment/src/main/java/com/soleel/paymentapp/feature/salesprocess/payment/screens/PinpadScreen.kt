@@ -29,16 +29,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.SavedStateHandle
 import com.soleel.paymentapp.core.component.SalesSummaryHeader
-import com.soleel.paymentapp.core.model.paymentprocess.PaymentResult
 import com.soleel.paymentapp.core.ui.utils.LongDevicePreview
 import com.soleel.paymentapp.core.ui.utils.WithFakeSystemBars
 import com.soleel.paymentapp.core.ui.utils.WithFakeTopAppBar
+import com.soleel.paymentapp.data.preferences.developer.DeveloperPreferencesMock
 import com.soleel.paymentapp.domain.payment.RequestConfirmingPaymentUseCaseMock
 import com.soleel.paymentapp.domain.payment.RequestValidationPaymentUseCaseMock
 import com.soleel.paymentapp.domain.payment.SavePaymentUseCaseMock
 import com.soleel.paymentapp.domain.reading.ContactReadingUseCaseMock
 import com.soleel.paymentapp.domain.reading.ContactlessReadingUseCaseMock
 import com.soleel.paymentapp.feature.salesprocess.payment.ConfirmingPinUiState
+import com.soleel.paymentapp.feature.salesprocess.payment.FailedPayment
 import com.soleel.paymentapp.feature.salesprocess.payment.PaymentViewModel
 import com.soleel.paymentapp.feature.salesprocess.payment.PinpadButtonUiEvent
 import kotlinx.coroutines.delay
@@ -53,7 +54,9 @@ private fun CashChangeCalculatorScreenLongPreview() {
 
     val paymentViewModel: PaymentViewModel = PaymentViewModel(
         savedStateHandle = fakeSavedStateHandle,
-        contactlessReadingUseCase = ContactlessReadingUseCaseMock(),
+        contactlessReadingUseCase = ContactlessReadingUseCaseMock(
+            DeveloperPreferencesMock()
+        ),
         contactReadingUseCase = ContactReadingUseCaseMock(),
         requestValidationPaymentUseCase = RequestValidationPaymentUseCaseMock(),
         requestConfirmationPaymentUseCase = RequestConfirmingPaymentUseCaseMock(),
@@ -67,7 +70,8 @@ private fun CashChangeCalculatorScreenLongPreview() {
                     PinpadScreen(
                         paymentViewModel = paymentViewModel,
                         onCancel = { },
-                        navigateToRegisterPayment = {}
+                        navigateToRegisterPayment = {},
+                        navigateToFailedPayment = {}
                     )
                 }
             )
@@ -79,7 +83,8 @@ private fun CashChangeCalculatorScreenLongPreview() {
 fun PinpadScreen(
     paymentViewModel: PaymentViewModel,
     onCancel: () -> Unit,
-    navigateToRegisterPayment: () -> Unit
+    navigateToRegisterPayment: () -> Unit,
+    navigateToFailedPayment: () -> Unit
 //    navigateToOutcomeGraph: (paymentResult: PaymentResult) -> Unit
 ) {
     Column(

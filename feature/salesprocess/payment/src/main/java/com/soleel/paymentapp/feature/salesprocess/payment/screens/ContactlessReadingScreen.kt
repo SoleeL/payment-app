@@ -33,6 +33,7 @@ import com.soleel.paymentapp.core.ui.R
 import com.soleel.paymentapp.core.ui.utils.LongDevicePreview
 import com.soleel.paymentapp.core.ui.utils.WithFakeSystemBars
 import com.soleel.paymentapp.core.ui.utils.WithFakeTopAppBar
+import com.soleel.paymentapp.data.preferences.developer.DeveloperPreferencesMock
 import com.soleel.paymentapp.domain.payment.RequestConfirmingPaymentUseCaseMock
 import com.soleel.paymentapp.domain.payment.RequestValidationPaymentUseCaseMock
 import com.soleel.paymentapp.domain.payment.SavePaymentUseCaseMock
@@ -42,7 +43,6 @@ import com.soleel.paymentapp.feature.salesprocess.payment.PaymentViewModel
 import com.soleel.paymentapp.feature.salesprocess.payment.ReadingUiState
 import com.soleel.paymentapp.feature.salesprocess.payment.component.FailurePrompt
 import com.soleel.paymentapp.feature.salesprocess.payment.component.SuccessPrompt
-import kotlinx.coroutines.delay
 
 
 @LongDevicePreview
@@ -59,7 +59,9 @@ private fun ContactlessReadingScreenLongPreview() {
                     ContactlessReadingScreen(
                         paymentViewModel = PaymentViewModel(
                             savedStateHandle = fakeSavedStateHandle,
-                            contactlessReadingUseCase = ContactlessReadingUseCaseMock(),
+                            contactlessReadingUseCase = ContactlessReadingUseCaseMock(
+                                DeveloperPreferencesMock()
+                            ),
                             contactReadingUseCase = ContactReadingUseCaseMock(),
                             requestValidationPaymentUseCase = RequestValidationPaymentUseCaseMock(),
                             requestConfirmationPaymentUseCase = RequestConfirmingPaymentUseCaseMock(),
@@ -67,7 +69,7 @@ private fun ContactlessReadingScreenLongPreview() {
                         ),
                         navigateToContactReading = {},
                         navigateToVerificationMethod = {},
-                        navigateToOutcomeGraph = {}
+                        navigateToFailedPayment = {}
                     )
                 }
             )
@@ -79,14 +81,14 @@ private fun ContactlessReadingScreenLongPreview() {
 fun ContactlessReadingScreen(
     paymentViewModel: PaymentViewModel,
     navigateToContactReading: () -> Unit,
-    navigateToOutcomeGraph: (paymentResult: PaymentResult) -> Unit,
-    navigateToVerificationMethod: () -> Unit
+    navigateToVerificationMethod: () -> Unit,
+    navigateToFailedPayment: () -> Unit
 ) {
     LaunchedEffect(Unit) {
         paymentViewModel.startContactlessReading(
             withOtherReadingInterface = navigateToContactReading,
-            onPaymentResult =  navigateToOutcomeGraph,
-            onVerificationMethod = navigateToVerificationMethod
+            onVerificationMethod = navigateToVerificationMethod,
+            onFailedPayment = navigateToFailedPayment
         )
     }
 

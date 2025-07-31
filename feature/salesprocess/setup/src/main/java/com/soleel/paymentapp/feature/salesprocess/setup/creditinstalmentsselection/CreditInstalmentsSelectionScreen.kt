@@ -33,9 +33,7 @@ import com.soleel.paymentapp.feature.salesprocess.setup.SetupViewModel
 private fun CreditInstalmentsSelectionScreenLongPreview() {
     val fakeSavedStateHandle = SavedStateHandle(mapOf("calculatorTotal" to 7000f))
 
-    val setupViewModel: SetupViewModel = SetupViewModel(
-        savedStateHandle = fakeSavedStateHandle
-    )
+    val setupViewModel: SetupViewModel = SetupViewModel(fakeSavedStateHandle)
 
     setupViewModel.onSetupUiEvent(SetupUiEvent.TipSelected(tipTotal = 700f))
 

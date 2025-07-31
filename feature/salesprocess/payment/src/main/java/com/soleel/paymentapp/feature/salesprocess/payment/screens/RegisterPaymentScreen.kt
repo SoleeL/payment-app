@@ -35,16 +35,19 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.soleel.paymentapp.core.component.SalesSummaryHeader
+import com.soleel.paymentapp.core.model.Sale
 import com.soleel.paymentapp.core.model.paymentprocess.PaymentResult
 import com.soleel.paymentapp.core.ui.R
 import com.soleel.paymentapp.core.ui.utils.LongDevicePreview
 import com.soleel.paymentapp.core.ui.utils.WithFakeSystemBars
 import com.soleel.paymentapp.core.ui.utils.WithFakeTopAppBar
+import com.soleel.paymentapp.data.preferences.developer.DeveloperPreferencesMock
 import com.soleel.paymentapp.domain.payment.RequestConfirmingPaymentUseCaseMock
 import com.soleel.paymentapp.domain.payment.RequestValidationPaymentUseCaseMock
 import com.soleel.paymentapp.domain.payment.SavePaymentUseCaseMock
 import com.soleel.paymentapp.domain.reading.ContactReadingUseCaseMock
 import com.soleel.paymentapp.domain.reading.ContactlessReadingUseCaseMock
+import com.soleel.paymentapp.feature.salesprocess.payment.FailedPayment
 import com.soleel.paymentapp.feature.salesprocess.payment.PaymentStepUiState
 import com.soleel.paymentapp.feature.salesprocess.payment.PaymentViewModel
 import kotlinx.coroutines.delay
@@ -63,13 +66,16 @@ private fun ProcessPaymentScreenLongPreview() {
                     ProcessPaymentScreen(
                         paymentViewModel = PaymentViewModel(
                             savedStateHandle = fakeSavedStateHandle,
-                            contactlessReadingUseCase = ContactlessReadingUseCaseMock(),
+                            contactlessReadingUseCase = ContactlessReadingUseCaseMock(
+                                DeveloperPreferencesMock()
+                            ),
                             contactReadingUseCase = ContactReadingUseCaseMock(),
                             requestValidationPaymentUseCase = RequestValidationPaymentUseCaseMock(),
                             requestConfirmationPaymentUseCase = RequestConfirmingPaymentUseCaseMock(),
                             savePaymentUseCase = SavePaymentUseCaseMock(),
                         ),
-                        navigateToOutcomeGraph = {}
+                        navigateToFailedPayment = { },
+                        navigateToOutcomeGraph = { _, _ -> },
                     )
                 }
             )
@@ -80,7 +86,8 @@ private fun ProcessPaymentScreenLongPreview() {
 @Composable
 fun ProcessPaymentScreen(
     paymentViewModel: PaymentViewModel,
-    navigateToOutcomeGraph: (paymentResult: PaymentResult) -> Unit
+    navigateToFailedPayment: () -> Unit,
+    navigateToOutcomeGraph: (sale: Sale, paymentResult: PaymentResult) -> Unit
 ) {
     LaunchedEffect(Unit) {
         paymentViewModel.startPaymentProcess(navigateToOutcomeGraph)

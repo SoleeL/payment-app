@@ -14,7 +14,5 @@ dependencies {
     implementation(projects.core.ui)
 
     implementation(projects.feature.home)
-    implementation(projects.feature.salesprocess.setup)
-    implementation(projects.feature.salesprocess.payment)
-    implementation(projects.feature.salesprocess.outcome)
+    implementation(projects.feature.salesprocess2)
 }

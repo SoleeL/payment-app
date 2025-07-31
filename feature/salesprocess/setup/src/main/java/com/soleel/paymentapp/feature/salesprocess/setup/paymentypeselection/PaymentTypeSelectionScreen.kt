@@ -41,9 +41,7 @@ private fun PaymentTypeSelectionScreenLongPreview() {
             WithFakeTopAppBar(
                 content = {
                     PaymentTypeSelectionScreen(
-                        setupViewModel = SetupViewModel(
-                            savedStateHandle = fakeSavedStateHandle
-                        ),
+                        setupViewModel = SetupViewModel(fakeSavedStateHandle),
                         whenSelectingCash = {},
                         whenSelectingDebit = {},
                         whenSelectingCredit = {}

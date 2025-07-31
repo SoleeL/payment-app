@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -31,7 +32,9 @@ import com.soleel.paymentapp.feature.salesprocess.outcome.OutcomeGraph
 import com.soleel.paymentapp.feature.salesprocess.outcome.outcomeNavigationGraph
 import com.soleel.paymentapp.feature.salesprocess.payment.PaymentGraph
 import com.soleel.paymentapp.feature.salesprocess.payment.paymentNavigationGraph
+import com.soleel.paymentapp.feature.salesprocess.setup.PaymentTypeSelection
 import com.soleel.paymentapp.feature.salesprocess.setup.SetupGraph
+import com.soleel.paymentapp.feature.salesprocess.setup.SetupViewModel
 import com.soleel.paymentapp.feature.salesprocess.setup.setupNavigationGraph
 import kotlinx.serialization.Serializable
 import kotlin.reflect.typeOf
@@ -78,13 +81,27 @@ fun PaymentAppNavigationGraph() {
             paymentNavigationGraph(
                 saleToNavType = mapOf(typeOf<Sale>() to createNavType<Sale>()),
                 backToPrevious = { navHostController.popBackStack() },
-                navigateToOutcomeGraph = { paymentResult: PaymentResult ->
-                    navHostController.navigate(OutcomeGraph(paymentResult = paymentResult))
+                onRetryPaymentMethod = { sale: Sale ->
+                    navHostController.popBackStack()
+                    navHostController.navigate(PaymentGraph(sale = sale))
+                },
+                onSelectAnotherPaymentMethod = {
+                    navHostController.popBackStack<PaymentTypeSelection>(inclusive = false)
+                },
+                navigateToOutcomeGraph = { sale: Sale, paymentResult: PaymentResult ->
+                    navHostController.navigate(
+                        OutcomeGraph(
+                            sale = sale,
+                            paymentResult = paymentResult
+                        )
+                    )
                 }
             )
 
             outcomeNavigationGraph(
-                paymentResultToNavType = mapOf(typeOf<PaymentResult>() to createNavType<PaymentResult>())
+                saleToNavType = mapOf(typeOf<Sale>() to createNavType<Sale>()),
+                paymentResultToNavType = mapOf(typeOf<PaymentResult>() to createNavType<PaymentResult>()),
+                backToPrevious = { navHostController.popBackStack() }
             )
         }
     )

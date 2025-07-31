@@ -30,18 +30,27 @@ import kotlinx.serialization.Serializable
 import kotlin.reflect.KType
 
 @Serializable
-data class OutcomeGraph(val paymentResult: PaymentResult)
+data class OutcomeGraph(
+    val sale: Sale,
+    val paymentResult: PaymentResult
+)
 
 fun NavGraphBuilder.outcomeNavigationGraph(
+    saleToNavType: Map<KType, NavType<Sale>>,
     paymentResultToNavType: Map<KType, NavType<PaymentResult>>,
+    backToPrevious: () -> Unit
 ) {
     composable<OutcomeGraph>(
-        typeMap = paymentResultToNavType,
+        typeMap = saleToNavType + paymentResultToNavType,
         content = { backStackEntry ->
+            val sale: Sale = backStackEntry.toRoute<OutcomeGraph>().sale
             val paymentResult: PaymentResult = backStackEntry.toRoute<OutcomeGraph>().paymentResult
             val savedStateHandle: SavedStateHandle = backStackEntry.savedStateHandle
+            savedStateHandle["sale"] = sale
             savedStateHandle["paymentResult"] = paymentResult
-            OutcomeScreen()
+            OutcomeScreen(
+                backToPrevious = backToPrevious
+            )
         }
     )
 }
@@ -50,10 +59,10 @@ fun NavGraphBuilder.outcomeNavigationGraph(
 object RegisterSale
 
 @Serializable
-object PendingSale
+object SuccessfulSale
 
 @Serializable
-object SuccessfulSale
+object PendingSale
 
 @Serializable
 object FailedSale
@@ -71,7 +80,8 @@ object QRDownloadVoucher // README: Puede ser un modal
 @Composable
 fun OutcomeScreen(
     navHostController: NavHostController = rememberNavController(),
-    outcomeViewModel: OutcomeViewModel = hiltViewModel()
+    outcomeViewModel: OutcomeViewModel = hiltViewModel(),
+    backToPrevious: () -> Unit
 ) {
     val currentDestination: NavDestination? = navHostController.currentBackStackEntryAsState()
         .value?.destination
@@ -84,18 +94,20 @@ fun OutcomeScreen(
                 title = { }, // README: Si se borra el content no es detectado
                 modifier = Modifier.background(Color.DarkGray),
                 actions = {
-                    Surface(
-                        modifier = Modifier.padding(16.dp, 2.dp),
-//                        onClick = { // TODO: Para las vistas de error, si puedes tener cancel
-//                            backToPrevious()
-//                        },
-                        content = {
-                            Text(
-                                text = "Cancelar",
-                                style = MaterialTheme.typography.titleMedium,
-                            )
-                        }
-                    )
+                    if (!outcomeViewModel.paymentResult.isSuccess) {
+                        Surface(
+                            modifier = Modifier.padding(16.dp, 2.dp),
+                            onClick = { // TODO: Para las vistas de error, si puedes tener cancel
+                                backToPrevious()
+                            },
+                            content = {
+                                Text(
+                                    text = "Cancelar",
+                                    style = MaterialTheme.typography.titleMedium,
+                                )
+                            }
+                        )
+                    }
                 }
             )
         },
@@ -111,15 +123,15 @@ fun OutcomeScreen(
                         }
                     )
 
-                    composable<PendingSale>(
-                        content = {
-                            PendingSaleScreen()
-                        }
-                    )
-
                     composable<SuccessfulSale>(
                         content = {
                             SuccessfulSaleScreen()
+                        }
+                    )
+
+                    composable<PendingSale>(
+                        content = {
+                            PendingSaleScreen()
                         }
                     )
 

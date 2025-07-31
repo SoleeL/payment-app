@@ -106,10 +106,12 @@ open class PaymentViewModel @Inject constructor(
 
     private val requestValidationPaymentUseCase: IRequestValidationPaymentUseCase,
     private val requestConfirmationPaymentUseCase: IRequestConfirmingPaymentUseCase,
-    private val savePaymentUseCase: ISavePaymentUseCase,
-
-    ) : ViewModel() {
+    private val savePaymentUseCase: ISavePaymentUseCase
+) : ViewModel() {
     val sale: Sale = savedStateHandle.get<Sale>("sale") ?: Sale(calculatorTotal = 0f)
+
+    private val _failedPaymentResult = MutableStateFlow<PaymentResult>(PaymentResult(false))
+    val failedPaymentResult: StateFlow<PaymentResult> = _failedPaymentResult
 
     // Contactless
     private val _contactlessReadingUiState: Flow<ReadingUiState> = contactlessReadingUseCase()
@@ -128,8 +130,8 @@ open class PaymentViewModel @Inject constructor(
 
     fun startContactlessReading(
         withOtherReadingInterface: () -> Unit,
-        onPaymentResult: (paymentResult: PaymentResult) -> Unit,
-        onVerificationMethod: () -> Unit
+        onVerificationMethod: () -> Unit,
+        onFailedPayment: () -> Unit
     ) {
         viewModelScope.launch {
             _contactlessReadingStepUiState.value = ReadingStepUiState.Active
@@ -144,31 +146,30 @@ open class PaymentViewModel @Inject constructor(
 
                 val errorType = failure?.getErrorType()
 
+                delay(1000)
+
                 when (errorType) {
                     ReadingErrorType.InterfaceFallback -> {
-                        delay(1000)
                         withOtherReadingInterface()
                     }
 
                     ReadingErrorType.InvalidCard -> {
-                        onPaymentResult(
-                            PaymentResult(
-                                isSuccess = false,
-                                message = failure.errorMessage,
-                                failedStep = "READING"
-                            )
+                        _failedPaymentResult.value = PaymentResult(
+                            isSuccess = false,
+                            message = failure.errorMessage,
+                            failedStep = "READING"
                         )
+                        onFailedPayment()
                     }
 
                     ReadingErrorType.PaymentRejected,
                     is ReadingErrorType.Other, null -> {
-                        onPaymentResult(
-                            PaymentResult(
-                                isSuccess = false,
-                                message = failure?.errorMessage ?: "Error desconocido",
-                                failedStep = "READING"
-                            )
+                        _failedPaymentResult.value = PaymentResult(
+                            isSuccess = false,
+                            message = failure?.errorMessage ?: "Error desconocido",
+                            failedStep = "READING"
                         )
+                        onFailedPayment()
                     }
                 }
 
@@ -198,8 +199,8 @@ open class PaymentViewModel @Inject constructor(
         MutableStateFlow<ReadingStepUiState>(ReadingStepUiState.Active)
 
     fun startContactReading(
-        onPaymentResult: (paymentResult: PaymentResult) -> Unit,
-        onVerificationMethod: () -> Unit
+        onVerificationMethod: () -> Unit,
+        onFailedPayment: () -> Unit
     ) {
         viewModelScope.launch {
             _contactReadingStepUiState.value = ReadingStepUiState.Active
@@ -219,24 +220,22 @@ open class PaymentViewModel @Inject constructor(
                 when (errorType) {
                     ReadingErrorType.InterfaceFallback,
                     ReadingErrorType.InvalidCard -> {
-                        onPaymentResult(
-                            PaymentResult(
-                                isSuccess = false,
-                                message = failure.errorMessage,
-                                failedStep = "READING"
-                            )
+                        _failedPaymentResult.value = PaymentResult(
+                            isSuccess = false,
+                            message = failure.errorMessage,
+                            failedStep = "READING"
                         )
+                        onFailedPayment()
                     }
 
                     ReadingErrorType.PaymentRejected,
                     is ReadingErrorType.Other, null -> {
-                        onPaymentResult(
-                            PaymentResult(
-                                isSuccess = false,
-                                message = failure?.errorMessage ?: "Error desconocido",
-                                failedStep = "READING"
-                            )
+                        _failedPaymentResult.value = PaymentResult(
+                            isSuccess = false,
+                            message = failure?.errorMessage ?: "Error desconocido",
+                            failedStep = "READING"
                         )
+                        onFailedPayment()
                     }
                 }
 
@@ -350,7 +349,8 @@ open class PaymentViewModel @Inject constructor(
     fun onConfirmPinpadInput(navigateToRegisterPayment: () -> Unit) {
         viewModelScope.launch(
             block = {
-                _pinpadUiState = pinpadUiState.copy(confirmingPinUiState = ConfirmingPinUiState.Confirming)
+                _pinpadUiState =
+                    pinpadUiState.copy(confirmingPinUiState = ConfirmingPinUiState.Confirming)
                 delay(1500)
                 navigateToRegisterPayment()
 
@@ -362,7 +362,7 @@ open class PaymentViewModel @Inject constructor(
     private val _validatingPaymentProcessUiState: Flow<PaymentProcessUiState<ValidationPaymentProcessData>> =
         requestValidationPaymentUseCase()
             .asResult()
-            .map { getValidationPaymentProcessData(it) }
+            .map(transform = { getValidationPaymentProcessData(it) })
 
     private fun getValidationPaymentProcessData(validationPaymentProcessResult: Result<ValidationPaymentProcessData>): PaymentProcessUiState<ValidationPaymentProcessData> {
         return when (validationPaymentProcessResult) {
@@ -435,7 +435,7 @@ open class PaymentViewModel @Inject constructor(
         MutableStateFlow<PaymentStepUiState>(PaymentStepUiState.Validating)
     val paymentStepUiState: StateFlow<PaymentStepUiState> = _paymentStepUiState
 
-    fun startPaymentProcess(onPaymentResult: (paymentResult: PaymentResult) -> Unit) {
+    fun startPaymentProcess(onPaymentResult: (sale: Sale, paymentResult: PaymentResult) -> Unit) {
         viewModelScope.launch {
             _paymentStepUiState.value = PaymentStepUiState.Validating
 
@@ -449,7 +449,6 @@ open class PaymentViewModel @Inject constructor(
                 val errorMessage: String? =
                     (validatingPaymentProcessResult as? PaymentProcessUiState.Failure)?.errorMessage
 
-
 //                val validPins = listOf("1234", "0000", "9999") // Lista de PINs válidos
 //                    ReadingErrorType.PaymentRejected -> { TODO: IMPLEMENTAR RETORNO DE FALLAS
 //                        onPaymentResult(
@@ -462,6 +461,7 @@ open class PaymentViewModel @Inject constructor(
 //                    }
 
                 onPaymentResult(
+                    sale,
                     PaymentResult(
                         isSuccess = false,
                         message = errorMessage,
@@ -484,6 +484,7 @@ open class PaymentViewModel @Inject constructor(
                     (confirmingPaymentProcessResult as? PaymentProcessUiState.Failure)?.errorMessage
 
                 onPaymentResult(
+                    sale,
                     PaymentResult(
                         isSuccess = false,
                         message = errorMessage,
@@ -505,6 +506,7 @@ open class PaymentViewModel @Inject constructor(
                 val errorMessage: String? =
                     (savingPaymentProcessResult as? PaymentProcessUiState.Failure)?.errorMessage
                 onPaymentResult(
+                    sale,
                     PaymentResult(
                         isSuccess = false,
                         message = errorMessage,
@@ -521,6 +523,7 @@ open class PaymentViewModel @Inject constructor(
             delay(1000)
 
             onPaymentResult(
+                sale,
                 PaymentResult(
                     isSuccess = true,
                     paymentId = paymentData.id

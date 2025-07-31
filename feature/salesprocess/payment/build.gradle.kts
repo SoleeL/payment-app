@@ -14,6 +14,8 @@ dependencies {
     implementation(projects.core.model)
     implementation(projects.core.ui)
 
+    implementation(projects.data.preferences)
+
     implementation(projects.domain.payment)
     implementation(projects.domain.reading)
 }

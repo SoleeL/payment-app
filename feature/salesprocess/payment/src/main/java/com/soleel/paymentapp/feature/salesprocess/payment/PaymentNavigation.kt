@@ -30,6 +30,7 @@ import com.soleel.paymentapp.core.model.Sale
 import com.soleel.paymentapp.core.model.paymentprocess.PaymentResult
 import com.soleel.paymentapp.feature.salesprocess.payment.screens.ContactReadingScreen
 import com.soleel.paymentapp.feature.salesprocess.payment.screens.ContactlessReadingScreen
+import com.soleel.paymentapp.feature.salesprocess.payment.screens.FailedPaymentScreen
 import com.soleel.paymentapp.feature.salesprocess.payment.screens.PinpadScreen
 import com.soleel.paymentapp.feature.salesprocess.payment.screens.ProcessPaymentScreen
 import kotlinx.serialization.Serializable
@@ -41,7 +42,9 @@ data class PaymentGraph(val sale: Sale)
 fun NavGraphBuilder.paymentNavigationGraph(
     saleToNavType: Map<KType, NavType<Sale>>,
     backToPrevious: () -> Unit,
-    navigateToOutcomeGraph: (paymentResult: PaymentResult) -> Unit
+    onRetryPaymentMethod: (Sale) -> Unit,
+    onSelectAnotherPaymentMethod: () -> Unit,
+    navigateToOutcomeGraph: (sale: Sale, paymentResult: PaymentResult) -> Unit
 ) {
     composable<PaymentGraph>(
         typeMap = saleToNavType,
@@ -51,6 +54,8 @@ fun NavGraphBuilder.paymentNavigationGraph(
             savedStateHandle["sale"] = sale
             PaymentScreen(
                 backToPrevious = backToPrevious,
+                onRetryPaymentMethod = onRetryPaymentMethod,
+                onSelectAnotherPaymentMethod = onSelectAnotherPaymentMethod,
                 navigateToOutcomeGraph = navigateToOutcomeGraph
             )
         }
@@ -69,13 +74,18 @@ object Pinpad
 @Serializable
 object ProcessPayment
 
+@Serializable
+object FailedPayment
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PaymentScreen(
     navHostController: NavHostController = rememberNavController(),
     paymentViewModel: PaymentViewModel = hiltViewModel(),
     backToPrevious: () -> Unit, // TODO Cambiar por un cancel
-    navigateToOutcomeGraph: (paymentResult: PaymentResult) -> Unit
+    onRetryPaymentMethod: (Sale) -> Unit,
+    onSelectAnotherPaymentMethod: () -> Unit,
+    navigateToOutcomeGraph: (sale: Sale, paymentResult: PaymentResult) -> Unit
 ) {
     val currentDestination: NavDestination? = navHostController.currentBackStackEntryAsState()
         .value?.destination
@@ -145,7 +155,7 @@ fun PaymentScreen(
                                 paymentViewModel = paymentViewModel,
                                 navigateToContactReading = { navHostController.navigate(ContactReading)},
                                 navigateToVerificationMethod = { navHostController.navigate(Pinpad) },
-                                navigateToOutcomeGraph = navigateToOutcomeGraph
+                                navigateToFailedPayment = { navHostController.navigate(FailedPayment) },
                             )
                         }
                     )
@@ -155,7 +165,7 @@ fun PaymentScreen(
                             ContactReadingScreen(
                                 paymentViewModel = paymentViewModel,
                                 navigateToVerificationMethod = { navHostController.navigate(Pinpad) },
-                                navigateToOutcomeGraph = navigateToOutcomeGraph
+                                navigateToFailedPayment = { navHostController.navigate(FailedPayment) },
                             )
                         }
                     )
@@ -165,6 +175,7 @@ fun PaymentScreen(
                             PinpadScreen(
                                 paymentViewModel = paymentViewModel,
                                 onCancel = backToPrevious,
+                                navigateToFailedPayment = { navHostController.navigate(FailedPayment) },
                                 navigateToRegisterPayment = { navHostController.navigate(ProcessPayment) }
                             )
                         }
@@ -174,7 +185,18 @@ fun PaymentScreen(
                         content = {
                             ProcessPaymentScreen(
                                 paymentViewModel = paymentViewModel,
+                                navigateToFailedPayment = { navHostController.navigate(FailedPayment) },
                                 navigateToOutcomeGraph = navigateToOutcomeGraph
+                            )
+                        }
+                    )
+
+                    composable<FailedPayment>(
+                        content = {
+                            FailedPaymentScreen(
+                                paymentViewModel = paymentViewModel,
+                                onRetryPaymentMethod = onRetryPaymentMethod,
+                                onSelectAnotherPaymentMethod = onSelectAnotherPaymentMethod
                             )
                         }
                     )

@@ -1,5 +1,6 @@
 package com.soleel.paymentapp.feature.salesprocess.setup
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -34,6 +35,7 @@ import com.soleel.paymentapp.feature.salesprocess.setup.debitchangeselection.Deb
 import com.soleel.paymentapp.feature.salesprocess.setup.paymentypeselection.PaymentTypeSelectionScreen
 import com.soleel.paymentapp.feature.salesprocess.setup.tipselection.TipSelectionScreen
 import kotlinx.serialization.Serializable
+
 
 
 @Serializable
@@ -71,6 +73,7 @@ object CreditInstallmentsSelection
 @Serializable
 object DebitChangeSelection
 
+@SuppressLint("RestrictedApi")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SetupScreen(

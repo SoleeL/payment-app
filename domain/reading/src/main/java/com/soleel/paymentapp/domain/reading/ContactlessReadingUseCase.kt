@@ -1,6 +1,8 @@
 package com.soleel.paymentapp.domain.reading
 
+import com.soleel.paymentapp.core.model.enums.DeveloperPreferenceKey
 import com.soleel.paymentapp.core.model.readingprocess.InterfaceReadData
+import com.soleel.paymentapp.data.preferences.developer.IDeveloperPreferences
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -25,10 +27,33 @@ fun interface IContactlessReadingUseCase {
     operator fun invoke(): Flow<InterfaceReadData>
 }
 
-class ContactlessReadingUseCaseMock @Inject constructor() : IContactlessReadingUseCase {
+class ContactlessReadingUseCaseMock @Inject constructor(
+    private val developerPreferences: IDeveloperPreferences
+) : IContactlessReadingUseCase {
     override fun invoke(): Flow<InterfaceReadData> = flow {
         delay(5000)
-        throw InterfaceFallbackException()
+
+        val fallbackEnabled = developerPreferences.isEnabled(DeveloperPreferenceKey.CONTACTLESS_READER_FALLBACK)
+        val invalidCardEnabled = developerPreferences.isEnabled(DeveloperPreferenceKey.CONTACTLESS_READER_INVALID_CARD)
+        val genericErrorEnabled = developerPreferences.isEnabled(DeveloperPreferenceKey.CONTACTLESS_READER_OTHER_ERROR)
+
+        when {
+            fallbackEnabled -> throw InterfaceFallbackException()
+            invalidCardEnabled -> throw InvalidCardException()
+            genericErrorEnabled -> throw PaymentRejectedException()
+            else -> emit(
+                InterfaceReadData(
+                    cardNumber = "1234 5678 9012 3456",
+                    cardHolderName = "Juan Pérez",
+                    expirationDate = "12/25",
+                    isValid = true,
+                    additionalInfo = mapOf(
+                        "transactionId" to "TX123456789",
+                        "authCode" to "AUTH98765"
+                    )
+                )
+            )
+        }
     }
 }
 

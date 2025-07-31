@@ -39,7 +39,7 @@ sealed class SetupUiEvent {
 
 @HiltViewModel
 open class SetupViewModel @Inject constructor(
-    private val savedStateHandle: SavedStateHandle,
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val calculatorTotal: Float = savedStateHandle.get<Float>("calculatorTotal") ?: 0f
 
