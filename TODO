@@ -1,0 +1,62 @@
+# TODO
+
+## Alta
+- [X] PaymentTypeSelection: Implementar vista y logica
+- [X] CreditInstallmentsSelection: Implementar vista y logica
+- [ ] DebitChangeSelection: Implementar vista y logica
+- [X] ContactlessReading: Implementar vista y logica
+- [X] ContactReading: Implementar vista y logica
+- [X] Pinpad: Implementar vista y logica
+- [X] ProcessPayment: Implementar vista y logica
+- [X] FailedPayment: Implementar vista y logica
+
+- [ ] RegisterSale: Implementar vista y logica
+- [ ] SuccessfulSale: Implementar vista y logica
+- [ ] PendingSale: Implementar vista y logica
+- [ ] FailedSale: Implementar vista y logica
+
+- [ ] DebitChangeSelection: Implementar seleccion de vueltos posibles
+
+- [X] ContactlessReading: Eliminar stack al navegar a ella
+- [ ] ContactlessReading: bloquear navegacion de BackButton
+
+- [X] ContactReading: Eliminar stack al navegar a ella
+- [ ] ContactlContactReadingessReading: bloquear navegacion de BackButton
+
+- [X] Pinpad: Eliminar stack al navegar a ella
+- [ ] Pinpad: bloquear navegacion de BackButton
+
+- [X] ProcessPayment: Eliminar stack al navegar a ella
+- [ ] ProcessPayment: bloquear navegacion de BackButton
+
+- [X] FailedPayment: Eliminar stack al navegar a ella
+- [ ] FailedPayment: Al presionar BackButton presentar Modal de cancelacion
+
+- [ ] RegisterSale: Eliminar stack al navegar a ella
+- [ ] RegisterSale: bloquear navegacion de BackButton
+
+- [ ] SuccessfulSale: Eliminar stack al navegar a ella
+- [ ] SuccessfulSale: Al presionar BackButton presentar Modal de cancelacion
+
+- [ ] PendingSale: Eliminar stack al navegar a ella
+- [ ] PendingSale: Al presionar BackButton presentar Modal de cancelacion
+
+- [ ] FailedSale: Eliminar stack al navegar a ella
+- [ ] FailedSale: Al presionar BackButton presentar Modal de cancelacion
+
+- [ ] salesProcessGraph: Implementar logica de navigacion al cancelar (Modal de cancelacion)
+- [ ] SalesProcessScreen - TopAppBar: Condicionar aparecion de los botones de retroceso y cancelar
+
+## Media
+- [ ] CashChangeCalculator: Implementar vista y logica
+
+- [ ] ViewModel: Eliminar valores al retroceder en el Setup
+    - [ ] CashChangeCalculator
+    - [ ] CreditInstallmentsSelection
+    - [ ] DebitChangeSelection
+    
+## Baja
+- [ ] TipSelection: Pendiente de implementacion
+- [ ] PrintVoucher // README: Puede ser un modal
+- [ ] SendVoucherToEmail // README: Puede ser un modal
+- [ ] QRDownloadVoucher // README: Puede ser un modal

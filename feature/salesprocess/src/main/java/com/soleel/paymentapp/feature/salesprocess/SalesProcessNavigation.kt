@@ -249,7 +249,8 @@ fun SalesProcessScreen(
                                             salesProcessViewModel.onSalesProcessUiEvent(
                                                 SalesProcessUiEvent.PaymentMethodSelected(it)
                                             )
-                                            val sale: Sale = salesProcessViewModel.salesProcessUiModel.toSale()
+                                            val sale: Sale =
+                                                salesProcessViewModel.salesProcessUiModel.toSale()
                                             when (it) {
                                                 PaymentMethodEnum.CASH -> {
                                                     navHostController.navigate(
@@ -282,8 +283,17 @@ fun SalesProcessScreen(
                                             salesProcessViewModel.onSalesProcessUiEvent(
                                                 SalesProcessUiEvent.CashChangeSelected(it)
                                             )
-                                            val sale: Sale = salesProcessViewModel.salesProcessUiModel.toSale()
-                                            navHostController.navigate(RegisterSale(sale))
+                                            val sale: Sale =
+                                                salesProcessViewModel.salesProcessUiModel.toSale()
+                                            navHostController.navigate(
+                                                route = RegisterSale(sale),
+                                                builder = {
+                                                    popUpTo(navHostController.graph.startDestinationId) {
+                                                        inclusive = true
+                                                    }
+                                                    launchSingleTop = true
+                                                }
+                                            )
                                         }
                                     )
                                 }
@@ -297,8 +307,17 @@ fun SalesProcessScreen(
                                             salesProcessViewModel.onSalesProcessUiEvent(
                                                 SalesProcessUiEvent.CreditInstalmentsSelected(it)
                                             )
-                                            val sale: Sale = salesProcessViewModel.salesProcessUiModel.toSale()
-                                            navHostController.navigate(ContactlessReading(sale))
+                                            val sale: Sale = salesProcessViewModel.salesProcessUiModel
+                                                .toSale()
+                                            navHostController.navigate(
+                                                route = ContactlessReading(sale),
+                                                builder = {
+                                                    popUpTo(navHostController.graph.startDestinationId) {
+                                                        inclusive = true
+                                                    }
+                                                    launchSingleTop = true
+                                                }
+                                            )
                                         }
                                     )
                                 }
@@ -312,8 +331,17 @@ fun SalesProcessScreen(
                                             salesProcessViewModel.onSalesProcessUiEvent(
                                                 SalesProcessUiEvent.DebitChangeSelected(it)
                                             )
-                                            val sale: Sale = salesProcessViewModel.salesProcessUiModel.toSale()
-                                            navHostController.navigate(ContactlessReading(sale))
+                                            val sale: Sale =
+                                                salesProcessViewModel.salesProcessUiModel.toSale()
+                                            navHostController.navigate(
+                                                route = ContactlessReading(sale),
+                                                builder = {
+                                                    popUpTo(navHostController.graph.startDestinationId) {
+                                                        inclusive = true
+                                                    }
+                                                    launchSingleTop = true
+                                                }
+                                            )
                                         }
                                     )
                                 }
@@ -331,17 +359,35 @@ fun SalesProcessScreen(
                                     ContactlessReadingScreen(
                                         navigateToContactReading = {
                                             navHostController.navigate(
-                                                ContactReading
+                                                route = ContactReading,
+                                                builder = {
+                                                    popUpTo(navHostController.graph.startDestinationId) {
+                                                        inclusive = true
+                                                    }
+                                                    launchSingleTop = true
+                                                }
                                             )
                                         },
                                         navigateToVerificationMethod = {
                                             navHostController.navigate(
-                                                Pinpad
+                                                route = Pinpad,
+                                                builder = {
+                                                    popUpTo(navHostController.graph.startDestinationId) {
+                                                        inclusive = true
+                                                    }
+                                                    launchSingleTop = true
+                                                }
                                             )
                                         },
                                         navigateToFailedPayment = {
                                             navHostController.navigate(
-                                                FailedPayment
+                                                route = FailedPayment,
+                                                builder = {
+                                                    popUpTo(navHostController.graph.startDestinationId) {
+                                                        inclusive = true
+                                                    }
+                                                    launchSingleTop = true
+                                                }
                                             )
                                         },
                                     )
@@ -353,12 +399,24 @@ fun SalesProcessScreen(
                                     ContactReadingScreen(
                                         navigateToVerificationMethod = {
                                             navHostController.navigate(
-                                                Pinpad
+                                                route = Pinpad,
+                                                builder = {
+                                                    popUpTo(navHostController.graph.startDestinationId) {
+                                                        inclusive = true
+                                                    }
+                                                    launchSingleTop = true
+                                                }
                                             )
                                         },
                                         navigateToFailedPayment = {
                                             navHostController.navigate(
-                                                FailedPayment
+                                                route = FailedPayment,
+                                                builder = {
+                                                    popUpTo(navHostController.graph.startDestinationId) {
+                                                        inclusive = true
+                                                    }
+                                                    launchSingleTop = true
+                                                }
                                             )
                                         },
                                     )
@@ -371,12 +429,24 @@ fun SalesProcessScreen(
                                         onCancel = backToPrevious,
                                         navigateToFailedPayment = {
                                             navHostController.navigate(
-                                                FailedPayment
+                                                route = FailedPayment,
+                                                builder = {
+                                                    popUpTo(navHostController.graph.startDestinationId) {
+                                                        inclusive = true
+                                                    }
+                                                    launchSingleTop = true
+                                                }
                                             )
                                         },
                                         navigateToProcessPayment = {
                                             navHostController.navigate(
-                                                ProcessPayment
+                                                route = ProcessPayment,
+                                                builder = {
+                                                    popUpTo(navHostController.graph.startDestinationId) {
+                                                        inclusive = true
+                                                    }
+                                                    launchSingleTop = true
+                                                }
                                             )
                                         }
                                     )
@@ -387,10 +457,26 @@ fun SalesProcessScreen(
                                 content = {
                                     ProcessPaymentScreen(
                                         navigateToFailedPayment = {
-                                            navHostController.navigate(FailedPayment)
+                                            navHostController.navigate(
+                                                route = FailedPayment,
+                                                builder = {
+                                                    popUpTo(navHostController.graph.startDestinationId) {
+                                                        inclusive = true
+                                                    }
+                                                    launchSingleTop = true
+                                                }
+                                            )
                                         },
                                         navigateToRegisterSale = { sale: Sale, paymentResult: PaymentResult ->
-                                            navHostController.navigate(RegisterSale(sale))
+                                            navHostController.navigate(
+                                                route = RegisterSale(sale),
+                                                builder = {
+                                                    popUpTo(navHostController.graph.startDestinationId) {
+                                                        inclusive = true
+                                                    }
+                                                    launchSingleTop = true
+                                                }
+                                            )
                                         }
                                     )
                                 }
