@@ -9,12 +9,9 @@ import com.soleel.paymentapp.core.model.Sale
 import com.soleel.paymentapp.core.model.outcomeprocess.RecordingSaleProcessData
 import com.soleel.paymentapp.core.model.outcomeprocess.RegisterSaleResult
 import com.soleel.paymentapp.core.model.outcomeprocess.StoreSaleProcessData
-import com.soleel.paymentapp.core.model.paymentprocess.ConfirmationPaymentProcessData
-import com.soleel.paymentapp.core.model.paymentprocess.PaymentProcessData
 import com.soleel.paymentapp.core.model.paymentprocess.PaymentResult
 import com.soleel.paymentapp.domain.sale.IRecordingSaleUseCase
 import com.soleel.paymentapp.domain.sale.IStoreSaleUseCase
-import com.soleel.paymentapp.feature.salesprocess.payment.registerpayment.PaymentProcessUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -48,7 +45,7 @@ open class RegisterSaleViewModel @Inject constructor(
     private val storeSaleUseCase: IStoreSaleUseCase,
     private val recordingSaleUseCase: IRecordingSaleUseCase,
 ) : ViewModel() {
-    val sale: Sale = savedStateHandle.get<Sale>("sale") ?: Sale(calculatorTotal = 0f)
+    val sale: Sale = savedStateHandle.get<Sale>("sale") ?: Sale(totalAmount = 0)
     val paymentResult: PaymentResult =
         savedStateHandle.get<PaymentResult>("paymentResult") ?: PaymentResult(isSuccess = false)
 

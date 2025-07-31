@@ -35,12 +35,12 @@ private fun SalesSummaryLongPreview() {
             WithFakeTopAppBar(
                 content = {
                     SalesSummaryHeader(
-                        calculatorTotal = 2000f,
-                        tipTotal = 200f,
+                        totalAmount = 2000,
+                        tipTotal = 200,
                         paymentMethodSelected = PaymentMethodEnum.CREDIT,
-                        cashChangeSelected = 10000f,
+                        cashChangeSelected = 10000,
                         creditInstalmentsSelected = 0,
-                        debitChangeSelected = 5000f
+                        debitChangeSelected = 5000
                     )
                 }
             )
@@ -50,18 +50,18 @@ private fun SalesSummaryLongPreview() {
 
 @Composable
 fun SalesSummaryHeader(
-    calculatorTotal: Float,
-    tipTotal: Float? = null,
+    totalAmount: Int,
+    tipTotal: Int? = null,
     paymentMethodSelected: PaymentMethodEnum? = null,
-    cashChangeSelected: Float? = null,
+    cashChangeSelected: Int? = null,
     creditInstalmentsSelected: Int? = null,
-    debitChangeSelected: Float? = null
+    debitChangeSelected: Int? = null
 ) {
-    val calculatorTotalAmountCLP: String = CLPCurrencyVisualTransformation()
-        .filter(AnnotatedString(text = calculatorTotal.toInt().toString()))
+    val totalAmountAmountCLP: String = CLPCurrencyVisualTransformation()
+        .filter(AnnotatedString(text = totalAmount.toInt().toString()))
         .text.toString()
 
-    var salesTotal: Float = calculatorTotal
+    var salesTotal: Int = totalAmount
 
     var tipTotalAmountCLP: String = ""
     if (tipTotal != null) {
@@ -133,7 +133,7 @@ fun SalesSummaryHeader(
                                     withStyle(
                                         style = SpanStyle(fontWeight = FontWeight.Bold),
                                         block = {
-                                            append(calculatorTotalAmountCLP)
+                                            append(totalAmountAmountCLP)
                                         }
                                     )
                                 }
@@ -231,7 +231,7 @@ fun SalesSummaryHeader(
                     .filter(AnnotatedString(text = cashChangeSelected.toInt().toString()))
                     .text.toString()
 
-                val cashGiven: Float = cashChangeSelected - salesTotal
+                val cashGiven: Int = cashChangeSelected - salesTotal
 
                 val cashGivenAmountCLP: String = CLPCurrencyVisualTransformation()
                     .filter(AnnotatedString(text = cashGiven.toInt().toString()))

@@ -47,7 +47,7 @@ open class RegisterPaymentViewModel @Inject constructor(
     private val requestConfirmationPaymentUseCase: IRequestConfirmingPaymentUseCase,
     private val savePaymentUseCase: ISavePaymentUseCase
 ) : ViewModel() {
-    val sale: Sale = savedStateHandle.get<Sale>("sale") ?: Sale(calculatorTotal = 0f)
+    val sale: Sale = savedStateHandle.get<Sale>("sale") ?: Sale(totalAmount = 0)
 
     private val _validatingPaymentProcessUiState: Flow<PaymentProcessUiState<ValidationPaymentProcessData>> =
         requestValidationPaymentUseCase()

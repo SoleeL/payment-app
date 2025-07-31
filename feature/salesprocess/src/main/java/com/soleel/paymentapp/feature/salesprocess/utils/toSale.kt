@@ -5,7 +5,7 @@ import com.soleel.paymentapp.feature.salesprocess.SalesProcessUiModel
 
 fun SalesProcessUiModel.toSale(): Sale {
         return Sale(
-            calculatorTotal = calculatorTotal,
+            totalAmount = totalAmount,
             tipTotal = tipTotal,
             paymentMethodSelected = paymentMethodSelected,
             cashChangeSelected = cashChangeSelected,

@@ -31,7 +31,7 @@ import com.soleel.paymentapp.core.ui.utils.WithFakeTopAppBar
 private fun CashChangeCalculatorScreenLongPreview() {
     val fakeSavedStateHandle = SavedStateHandle(
         mapOf(
-            "calculatorTotal" to 7000f,
+            "totalAmount" to 7000f,
             "tipTotal" to 1000f
         )
     )
@@ -58,7 +58,7 @@ private fun CashChangeCalculatorScreenLongPreview() {
 @Composable
 fun CashChangeCalculatorScreen(
     cashChangeCalculatorViewModel: CashChangeCalculatorViewModel = hiltViewModel(),
-    navigateToRegisterSale: (cashChange:Float ) -> Unit
+    navigateToRegisterSale: (cashChange: Int) -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),

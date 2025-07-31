@@ -27,7 +27,7 @@ sealed class ButtonUiEvent {
 open class CashChangeCalculatorViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
-    private val calculatorTotal: Float = savedStateHandle.get<Float>("calculatorTotal") ?: 0f
+    private val totalAmount: Int = savedStateHandle.get<Int>("totalAmount") ?: 0
     private val tipTotal: Float = savedStateHandle.get<Float>("tipTotal") ?: 0f
 
     private var _buttonsUiEvent: List<ButtonUiEvent> by mutableStateOf(

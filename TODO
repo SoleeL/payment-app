@@ -1,7 +1,8 @@
 # TODO
 
 ## Prioridad
-- [ ] Limpiar calculadora al finalizar una venta
+- [X] Limpiar calculadora al finalizar una venta
+- [ ] Implementar flujo de Intent
 
 ## Alta
 - [X] PaymentTypeSelection: Implementar vista y logica

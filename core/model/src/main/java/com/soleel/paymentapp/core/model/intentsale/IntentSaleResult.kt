@@ -22,7 +22,7 @@ data class IntentSaleResultInternal(
 fun IntentSaleResultInternal.toExternal(): IntentSaleResultExternal {
     return IntentSaleResultExternal(
         saleId = saleId ?: "",
-        status = status.ordinal,
+        status = status.id,
         message = message ?: "",
         errorCode = errorCode ?: ""
     )

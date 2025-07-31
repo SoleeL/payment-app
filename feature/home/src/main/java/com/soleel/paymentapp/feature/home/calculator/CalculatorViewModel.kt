@@ -582,7 +582,7 @@ class CalculatorViewModel @Inject constructor() : ViewModel() {
         _calculatorButtonsUi = calculatorButtonsUiUpdated
     }
 
-    fun calculatorToSaleProcess(navigateToSalesProcessGraph: (calculatorTotal: Float) -> Unit) {
+    fun calculatorToSaleProcess(navigateToSalesProcessGraph: (totalAmount: Float) -> Unit) {
         navigateToSalesProcessGraph(currentCalculatorUiModel.result)
     }
 }

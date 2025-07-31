@@ -14,7 +14,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun DebitChangeSelectionScreen(
-    navigateToPaymentProcess: (Float?) -> Unit
+    navigateToPaymentProcess: (Int?) -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),

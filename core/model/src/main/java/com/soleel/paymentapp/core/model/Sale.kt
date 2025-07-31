@@ -8,11 +8,11 @@ import kotlinx.serialization.Serializable
 @Serializable
 @Parcelize
 data class Sale(
-    val calculatorTotal: Float,
+    val totalAmount: Int,
 
-    val tipTotal: Float? = null,
+    val tipTotal: Int? = null,
     val paymentMethodSelected: PaymentMethodEnum? = null,
-    val cashChangeSelected: Float? = null,
+    val cashChangeSelected: Int? = null,
     val creditInstalmentsSelected: Int? = null,
-    val debitChangeSelected: Float? = null
+    val debitChangeSelected: Int? = null
 ) : Parcelable

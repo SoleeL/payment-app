@@ -29,6 +29,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navDeepLink
 import com.soleel.paymentapp.core.component.SalesSummaryHeader
 import com.soleel.paymentapp.core.model.Sale
 import com.soleel.paymentapp.core.model.enums.PaymentMethodEnum
@@ -61,7 +62,7 @@ import kotlin.reflect.typeOf
 @Composable
 private fun SalesProcessScreenLongPreview() {
     val fakeSavedStateHandle = SavedStateHandle(
-        mapOf("calculatorTotal" to 7000f)
+        mapOf("totalAmount" to 7000f)
     )
 
     WithFakeSystemBars(
@@ -82,13 +83,33 @@ private fun SalesProcessScreenLongPreview() {
 }
 
 @Serializable
-data class SalesProcessGraph(val calculatorTotal: Float)
+data class SalesProcessGraph(
+    val totalAmount: Int,
+    val commerceId: String? = null,
+    val paymentMethod: Int? = null,
+    val cashChange: Int? = null,
+    val creditInstalments: Int? = null,
+    val debitChange: Int? = null
+)
 
 fun NavGraphBuilder.salesProcessGraph(
     saleToNavType: Map<KType, NavType<Sale>>,
     finalizeSale: () -> Unit
 ) {
     composable<SalesProcessGraph>(
+        deepLinks = listOf(
+            navDeepLink(
+                deepLinkBuilder = {
+                    uriPattern = "paymentapp://process_sale?" +
+                            "commerceId={commerceId}&" +
+                            "totalAmount={totalAmount}&" +
+                            "paymentMethod={paymentMethod}&" +
+                            "cashChange={cashChange}&" +
+                            "creditInstalments={creditInstalments}&" +
+                            "debitChange={debitChange}"
+                }
+            )
+        ),
         content = {
             SalesProcessScreen(
                 saleToNavType = saleToNavType,
@@ -153,11 +174,19 @@ object QRDownloadVoucher // README: Puede ser un modal
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SalesProcessScreen(
+    args: SalesProcessGraph,
     navHostController: NavHostController = rememberNavController(),
     salesProcessViewModel: SalesProcessViewModel = hiltViewModel(),
     saleToNavType: Map<KType, NavType<Sale>>,
     finalizeSale: () -> Unit
 ) {
+
+    args.totalAmount
+    val saleData = navBackStackEntry?.arguments?.getParcelable<SalesProcessGraph>("args")
+
+    val context = LocalContext.current
+
+
     val currentDestination: NavDestination? = navHostController.currentBackStackEntryAsState()
         .value?.destination
     val isAtStartDestination: Boolean =
@@ -212,7 +241,7 @@ fun SalesProcessScreen(
                 content = {
 
                     SalesSummaryHeader(
-                        calculatorTotal = salesProcessUiModel.calculatorTotal,
+                        totalAmount = salesProcessUiModel.totalAmount,
                         tipTotal = salesProcessUiModel.tipTotal,
                         paymentMethodSelected = salesProcessUiModel.paymentMethodSelected,
                         creditInstalmentsSelected = salesProcessUiModel.creditInstalmentsSelected,

@@ -12,6 +12,6 @@ import javax.inject.Inject
 open class OutcomeViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-    val sale: Sale = savedStateHandle.get<Sale>("sale") ?: Sale(calculatorTotal = 0f)
+    val sale: Sale = savedStateHandle.get<Sale>("sale") ?: Sale(totalAmount = 0)
     val paymentResult: PaymentResult = savedStateHandle.get<PaymentResult>("paymentResult") ?: PaymentResult(false)
 }

@@ -5,31 +5,30 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import com.soleel.paymentapp.core.model.Sale
 import com.soleel.paymentapp.core.model.enums.PaymentMethodEnum
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 data class SalesProcessUiModel(
-    val calculatorTotal: Float,
+    val totalAmount: Int,
 
-    val tipTotal: Float? = null,
+    val tipTotal: Int? = null,
     val paymentMethodSelected: PaymentMethodEnum? = null,
-    val cashChangeSelected: Float? = null,
+    val cashChangeSelected: Int? = null,
     val creditInstalmentsSelected: Int? = null,
-    val debitChangeSelected: Float? = null
+    val debitChangeSelected: Int? = null
 )
 
 sealed class SalesProcessUiEvent {
-    data class TipSelected(val tipTotal: Float?) : SalesProcessUiEvent()
+    data class TipSelected(val tipTotal: Int?) : SalesProcessUiEvent()
     data class PaymentMethodSelected(val paymentMethodSelected: PaymentMethodEnum) :
         SalesProcessUiEvent()
 
-    data class CashChangeSelected(val cashChangeSelected: Float?) : SalesProcessUiEvent()
+    data class CashChangeSelected(val cashChangeSelected: Int?) : SalesProcessUiEvent()
     data class CreditInstalmentsSelected(val creditInstalmentsSelected: Int?) :
         SalesProcessUiEvent()
 
-    data class DebitChangeSelected(val debitChangeSelected: Float?) : SalesProcessUiEvent()
+    data class DebitChangeSelected(val debitChangeSelected: Int?) : SalesProcessUiEvent()
 
     // TODO:
 
@@ -45,10 +44,10 @@ sealed class SalesProcessUiEvent {
 open class SalesProcessViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-    private val  calculatorTotal: Float = savedStateHandle.get<Float>("calculatorTotal") ?: 0f
+    private val totalAmount: Int = savedStateHandle.get<Int>("totalAmount") ?: 0
 
     private var _salesProcessUiModel: SalesProcessUiModel by mutableStateOf(
-        SalesProcessUiModel(calculatorTotal)
+        SalesProcessUiModel(totalAmount)
     )
 
     val salesProcessUiModel: SalesProcessUiModel get() = _salesProcessUiModel

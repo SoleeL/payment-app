@@ -11,7 +11,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 //data class SetupUiModel(
-//    val calculatorTotal: Float,
+//    val totalAmount: Float,
 //
 //    val tipTotal: Float? = null,
 //    val paymentMethodSelected: PaymentMethodEnum? = null,
@@ -41,10 +41,10 @@ import javax.inject.Inject
 //open class SetupViewModel @Inject constructor(
 //    private val savedStateHandle: SavedStateHandle
 //) : ViewModel() {
-//    private val calculatorTotal: Float = savedStateHandle.get<Float>("calculatorTotal") ?: 0f
+//    private val totalAmount: Float = savedStateHandle.get<Float>("totalAmount") ?: 0f
 //
 //    private var _setupUiModel: SetupUiModel by mutableStateOf(
-//        SetupUiModel(calculatorTotal)
+//        SetupUiModel(totalAmount)
 //    )
 //
 //    val setupUiModel: SetupUiModel get() = _setupUiModel
@@ -75,7 +75,7 @@ import javax.inject.Inject
 //
 //    private fun SetupUiModel.toSale(): Sale {
 //        return Sale(
-//            calculatorTotal = calculatorTotal,
+//            totalAmount = totalAmount,
 //            tipTotal = tipTotal,
 //            paymentMethodSelected = paymentMethodSelected,
 //            cashChangeSelected = cashChangeSelected,

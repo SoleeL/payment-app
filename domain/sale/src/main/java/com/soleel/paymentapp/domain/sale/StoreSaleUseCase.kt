@@ -38,7 +38,7 @@ class StoreSaleUseCaseMock @Inject constructor() : IStoreSaleUseCase {
         emit(
             StoreSaleProcessData(
                 localSaleId = UUID.randomUUID(),
-                sale = Sale(calculatorTotal = 7000.0f),
+                sale = Sale(totalAmount = 7000),
                 timestamp = System.currentTimeMillis()
             )
         )
