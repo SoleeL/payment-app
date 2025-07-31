@@ -36,10 +36,10 @@ sealed class SalesProcessUiEvent {
 open class SalesProcessViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-    private val sale: Sale = savedStateHandle.get<Sale>("sale") ?: Sale(0f)
+    private val  calculatorTotal: Float = savedStateHandle.get<Float>("calculatorTotal") ?: 0f
 
     private var _salesProcessUiModel: SalesProcessUiModel by mutableStateOf(
-        SalesProcessUiModel(sale.calculatorTotal)
+        SalesProcessUiModel(calculatorTotal)
     )
 
     val salesProcessUiModel: SalesProcessUiModel get() = _salesProcessUiModel

@@ -35,6 +35,9 @@ import com.soleel.paymentapp.core.model.Sale
 import com.soleel.paymentapp.core.model.enums.PaymentMethodEnum
 import com.soleel.paymentapp.core.model.paymentprocess.PaymentResult
 import com.soleel.paymentapp.core.navigation.createNavType
+import com.soleel.paymentapp.core.ui.utils.LongDevicePreview
+import com.soleel.paymentapp.core.ui.utils.WithFakeSystemBars
+import com.soleel.paymentapp.core.ui.utils.WithFakeTopAppBar
 import com.soleel.paymentapp.feature.salesprocess.outcome.FailedSaleScreen
 import com.soleel.paymentapp.feature.salesprocess.outcome.PendingSaleScreen
 import com.soleel.paymentapp.feature.salesprocess.outcome.RegisterSaleScreen
@@ -54,30 +57,29 @@ import kotlin.reflect.KType
 import kotlin.reflect.typeOf
 
 
-//fun NavGraphBuilder.salesProcessGraph(
-//    backToPrevious: () -> Unit
-//) {
-//    composable<SalesProcessGraph> { backStackEntry ->
-//
-//        val savedStateHandle = backStackEntry.savedStateHandle
-//        val calculatorTotalArg: Float = backStackEntry.toRoute<SalesProcessGraph>().calculatorTotal
-//
-//        val resultTotal by savedStateHandle
-//            .getStateFlow<Float?>("resultCalculatorTotal", null)
-//            .collectAsState()
-//
-//        LaunchedEffect(resultTotal) {
-//            resultTotal?.let {
-//                // Aquí puedes actualizar el ViewModel o tomar acciones
-//                println("Resultado recibido desde SetupScreen: $it")
-//            }
-//        }
-//
-//        SetupScreen(
-//            backToPrevious = backToPrevious
-//        )
-//    }
-//}
+@LongDevicePreview
+@Composable
+private fun SalesProcessScreenLongPreview() {
+    val fakeSavedStateHandle = SavedStateHandle(
+        mapOf("calculatorTotal" to 7000f)
+    )
+
+    WithFakeSystemBars(
+        content = {
+            WithFakeTopAppBar(
+                content = {
+                    SalesProcessScreen(
+                        salesProcessViewModel = SalesProcessViewModel(
+                            savedStateHandle = fakeSavedStateHandle
+                        ),
+                        saleToNavType = mapOf(typeOf<Sale>() to createNavType<Sale>()),
+                        backToPrevious = {}
+                    )
+                }
+            )
+        }
+    )
+}
 
 @Serializable
 data class SalesProcessGraph(val calculatorTotal: Float)
@@ -87,11 +89,7 @@ fun NavGraphBuilder.salesProcessGraph(
     backToPrevious: () -> Unit
 ) {
     composable<SalesProcessGraph>(
-        content = { backStackEntry ->
-            val calculatorTotal: Float = backStackEntry.toRoute<SalesProcessGraph>().calculatorTotal
-            val savedStateHandle: SavedStateHandle = backStackEntry.savedStateHandle
-            val sale: Sale = Sale(calculatorTotal = calculatorTotal)
-            savedStateHandle["sale"] = sale
+        content = {
             SalesProcessScreen(
                 saleToNavType = saleToNavType,
                 backToPrevious = backToPrevious
@@ -158,8 +156,8 @@ object QRDownloadVoucher // README: Puede ser un modal
 fun SalesProcessScreen(
     navHostController: NavHostController = rememberNavController(),
     salesProcessViewModel: SalesProcessViewModel = hiltViewModel(),
-    backToPrevious: () -> Unit,
-    saleToNavType: Map<KType, NavType<Sale>>
+    saleToNavType: Map<KType, NavType<Sale>>,
+    backToPrevious: () -> Unit
 ) {
     val currentDestination: NavDestination? = navHostController.currentBackStackEntryAsState()
         .value?.destination
@@ -225,7 +223,7 @@ fun SalesProcessScreen(
                     NavHost(
                         navController = navHostController,
                         startDestination = PaymentTypeSelection,
-                        modifier = Modifier.padding(paddingValues),
+                        modifier = Modifier.fillMaxSize(),
                         builder = {
 
                             // SETUP
