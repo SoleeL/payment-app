@@ -27,7 +27,6 @@ import com.soleel.paymentapp.core.ui.utils.WithFakeTopAppBar
 @Composable
 private fun CreditInstalmentsSelectionScreenLongPreview() {
 
-
     val creditInstalmentsSelectionViewModel: CreditInstalmentsSelectionViewModel =
         CreditInstalmentsSelectionViewModel()
 
