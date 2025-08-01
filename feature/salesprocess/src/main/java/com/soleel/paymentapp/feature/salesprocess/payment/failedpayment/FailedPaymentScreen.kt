@@ -1,5 +1,6 @@
 package com.soleel.paymentapp.feature.salesprocess.payment.failedpayment
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -50,7 +51,13 @@ fun FailedPaymentScreen(
     onRetryPaymentMethod: (sale: Sale) -> Unit,
     onSelectAnotherPaymentMethod: () -> Unit
 ) {
-    val sale: Sale = failedPaymentViewModel.sale
+    BackHandler(
+        enabled = true,
+        onBack = {
+            // TODO: Implementar modal de cancelacion
+        }
+    )
+
     val failedPaymentResult: PaymentResult = failedPaymentViewModel.paymentResult
 
     Column(

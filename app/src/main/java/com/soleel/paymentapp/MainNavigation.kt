@@ -13,7 +13,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -27,7 +26,6 @@ import com.soleel.paymentapp.core.model.Sale
 import com.soleel.paymentapp.core.navigation.createNavType
 import com.soleel.paymentapp.feature.home.HomeGraph
 import com.soleel.paymentapp.feature.home.homeNavigationGraph
-import com.soleel.paymentapp.feature.salesprocess.ContactlessReading
 import com.soleel.paymentapp.feature.salesprocess.SalesProcessGraph
 import com.soleel.paymentapp.feature.salesprocess.salesProcessGraph
 import kotlinx.serialization.Serializable
@@ -40,12 +38,14 @@ object Loading
 object Error
 
 @Composable
-fun PaymentAppNavigationGraph() {
+fun PaymentAppNavigationGraph(
+    startDestination: Any
+) {
     val navHostController: NavHostController = rememberNavController()
 
     NavHost(
         navController = navHostController,
-        startDestination = HomeGraph,
+        startDestination = startDestination,
         builder = {
             composable<Loading>(
                 content = {

@@ -15,6 +15,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -29,7 +30,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navDeepLink
 import com.soleel.paymentapp.core.component.SalesSummaryHeader
 import com.soleel.paymentapp.core.model.Sale
 import com.soleel.paymentapp.core.model.enums.PaymentMethodEnum
@@ -85,11 +85,10 @@ private fun SalesProcessScreenLongPreview() {
 @Serializable
 data class SalesProcessGraph(
     val totalAmount: Int,
-    val commerceId: String? = null,
-    val paymentMethod: Int? = null,
-    val cashChange: Int? = null,
-    val creditInstalments: Int? = null,
-    val debitChange: Int? = null
+    val paymentMethod: Int = -1,
+    val cashChange: Int = -1,
+    val creditInstalments: Int = -1,
+    val debitChange: Int = -1
 )
 
 fun NavGraphBuilder.salesProcessGraph(
@@ -97,19 +96,6 @@ fun NavGraphBuilder.salesProcessGraph(
     finalizeSale: () -> Unit
 ) {
     composable<SalesProcessGraph>(
-        deepLinks = listOf(
-            navDeepLink(
-                deepLinkBuilder = {
-                    uriPattern = "paymentapp://process_sale?" +
-                            "commerceId={commerceId}&" +
-                            "totalAmount={totalAmount}&" +
-                            "paymentMethod={paymentMethod}&" +
-                            "cashChange={cashChange}&" +
-                            "creditInstalments={creditInstalments}&" +
-                            "debitChange={debitChange}"
-                }
-            )
-        ),
         content = {
             SalesProcessScreen(
                 saleToNavType = saleToNavType,
@@ -120,22 +106,22 @@ fun NavGraphBuilder.salesProcessGraph(
 }
 
 @Serializable
-data class TipSelection(val sale: Sale)
+object TipSelection
 
 @Serializable
 object PaymentTypeSelection
 
 @Serializable
-data class CashChangeCalculator(val sale: Sale)
+object CashChangeCalculator
 
 @Serializable
-data class CreditInstallmentsSelection(val sale: Sale)
+object CreditInstallmentsSelection
 
 @Serializable
-data class DebitChangeSelection(val sale: Sale)
+object DebitChangeSelection
 
 @Serializable
-data class ContactlessReading(val sale: Sale)
+object ContactlessReading
 
 @Serializable
 object ContactReading
@@ -150,7 +136,7 @@ object ProcessPayment
 object FailedPayment
 
 @Serializable
-data class RegisterSale(val sale: Sale)
+object RegisterSale
 
 @Serializable
 object SuccessfulSale
@@ -170,23 +156,43 @@ object SendVoucherToEmail // README: Puede ser un modal
 @Serializable
 object QRDownloadVoucher // README: Puede ser un modal
 
+fun getStartDestination(salesProcessUiModel: SalesProcessUiModel): Any {
+    if (salesProcessUiModel.paymentMethodSelected == null) {
+        return PaymentTypeSelection
+    }
+
+    when (salesProcessUiModel.paymentMethodSelected) {
+        PaymentMethodEnum.CASH -> {
+            if (salesProcessUiModel.cashChangeSelected == null) {
+                return CashChangeCalculator
+            }
+            return RegisterSale
+        }
+
+        PaymentMethodEnum.CREDIT -> {
+            if (salesProcessUiModel.creditInstalmentsSelected == null) {
+                return CreditInstallmentsSelection
+            }
+            return ContactlessReading
+        }
+
+        PaymentMethodEnum.DEBIT -> {
+            if (salesProcessUiModel.debitChangeSelected == null) {
+                return DebitChangeSelection
+            }
+            return ContactlessReading
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SalesProcessScreen(
-    args: SalesProcessGraph,
     navHostController: NavHostController = rememberNavController(),
     salesProcessViewModel: SalesProcessViewModel = hiltViewModel(),
     saleToNavType: Map<KType, NavType<Sale>>,
     finalizeSale: () -> Unit
 ) {
-
-    args.totalAmount
-    val saleData = navBackStackEntry?.arguments?.getParcelable<SalesProcessGraph>("args")
-
-    val context = LocalContext.current
-
-
     val currentDestination: NavDestination? = navHostController.currentBackStackEntryAsState()
         .value?.destination
     val isAtStartDestination: Boolean =
@@ -242,15 +248,19 @@ fun SalesProcessScreen(
 
                     SalesSummaryHeader(
                         totalAmount = salesProcessUiModel.totalAmount,
-                        tipTotal = salesProcessUiModel.tipTotal,
+//                        tipTotal = salesProcessUiModel.tipTotal,
                         paymentMethodSelected = salesProcessUiModel.paymentMethodSelected,
                         creditInstalmentsSelected = salesProcessUiModel.creditInstalmentsSelected,
                         debitChangeSelected = salesProcessUiModel.debitChangeSelected
                     )
 
+                    val startDestination = remember(
+                        calculation = { getStartDestination(salesProcessUiModel) }
+                    )
+
                     NavHost(
                         navController = navHostController,
-                        startDestination = PaymentTypeSelection,
+                        startDestination = startDestination,
                         modifier = Modifier.fillMaxSize(),
                         builder = {
 
@@ -277,24 +287,22 @@ fun SalesProcessScreen(
                                             salesProcessViewModel.onSalesProcessUiEvent(
                                                 SalesProcessUiEvent.PaymentMethodSelected(it)
                                             )
-                                            val sale: Sale =
-                                                salesProcessViewModel.salesProcessUiModel.toSale()
                                             when (it) {
                                                 PaymentMethodEnum.CASH -> {
                                                     navHostController.navigate(
-                                                        CashChangeCalculator(sale = sale)
+                                                        CashChangeCalculator
                                                     )
                                                 }
 
                                                 PaymentMethodEnum.CREDIT -> {
                                                     navHostController.navigate(
-                                                        CreditInstallmentsSelection(sale = sale)
+                                                        CreditInstallmentsSelection
                                                     )
                                                 }
 
                                                 PaymentMethodEnum.DEBIT -> {
                                                     navHostController.navigate(
-                                                        DebitChangeSelection(sale = sale)
+                                                        DebitChangeSelection
                                                     )
                                                 }
                                             }
@@ -307,14 +315,19 @@ fun SalesProcessScreen(
                                 typeMap = saleToNavType, // TODO... SE TENE QUE PASAR DESDE EL NAV PRINCIPAL
                                 content = {
                                     CashChangeCalculatorScreen(
+                                        onBack = {
+                                            salesProcessViewModel.onSalesProcessUiEvent(
+                                                SalesProcessUiEvent.PaymentMethodSelected(null)
+                                            )
+                                            navHostController.popBackStack()
+                                        },
                                         navigateToRegisterSale = {
                                             salesProcessViewModel.onSalesProcessUiEvent(
                                                 SalesProcessUiEvent.CashChangeSelected(it)
                                             )
-                                            val sale: Sale =
-                                                salesProcessViewModel.salesProcessUiModel.toSale()
+                                            salesProcessViewModel.salesProcessUiModel.toSale()
                                             navHostController.navigate(
-                                                route = RegisterSale(sale),
+                                                route = RegisterSale,
                                                 builder = {
                                                     popUpTo(0) {
                                                         inclusive = true
@@ -331,15 +344,20 @@ fun SalesProcessScreen(
                                 typeMap = saleToNavType,
                                 content = {
                                     CreditInstalmentsSelectionScreen(
+                                        onBack = {
+                                            salesProcessViewModel.onSalesProcessUiEvent(
+                                                SalesProcessUiEvent.PaymentMethodSelected(null)
+                                            )
+                                            navHostController.popBackStack()
+                                        },
                                         navigateToPaymentProcess = {
                                             salesProcessViewModel.onSalesProcessUiEvent(
                                                 SalesProcessUiEvent.CreditInstalmentsSelected(it)
                                             )
-                                            val sale: Sale =
-                                                salesProcessViewModel.salesProcessUiModel
-                                                    .toSale()
+                                            salesProcessViewModel.salesProcessUiModel
+                                                .toSale()
                                             navHostController.navigate(
-                                                route = ContactlessReading(sale),
+                                                route = ContactlessReading,
                                                 builder = {
                                                     popUpTo(0) {
                                                         inclusive = true
@@ -356,14 +374,19 @@ fun SalesProcessScreen(
                                 typeMap = saleToNavType,
                                 content = {
                                     DebitChangeSelectionScreen(
+                                        onBack = {
+                                            salesProcessViewModel.onSalesProcessUiEvent(
+                                                SalesProcessUiEvent.PaymentMethodSelected(null)
+                                            )
+                                            navHostController.popBackStack()
+                                        },
                                         navigateToPaymentProcess = {
                                             salesProcessViewModel.onSalesProcessUiEvent(
                                                 SalesProcessUiEvent.DebitChangeSelected(it)
                                             )
-                                            val sale: Sale =
-                                                salesProcessViewModel.salesProcessUiModel.toSale()
+                                            salesProcessViewModel.salesProcessUiModel.toSale()
                                             navHostController.navigate(
-                                                route = ContactlessReading(sale),
+                                                route = ContactlessReading,
                                                 builder = {
                                                     popUpTo(0) {
                                                         inclusive = true
@@ -496,7 +519,7 @@ fun SalesProcessScreen(
                                         },
                                         navigateToRegisterSale = { sale: Sale, paymentResult: PaymentResult ->
                                             navHostController.navigate(
-                                                route = RegisterSale(sale),
+                                                route = RegisterSale,
                                                 builder = {
                                                     popUpTo(0) {
                                                         inclusive = true
@@ -514,7 +537,7 @@ fun SalesProcessScreen(
                                     FailedPaymentScreen(
                                         onRetryPaymentMethod = {
                                             navHostController.navigate(
-                                                route = ContactlessReading(it),
+                                                route = ContactlessReading,
                                                 builder = {
                                                     popUpTo(0) {
                                                         inclusive = true
@@ -524,6 +547,17 @@ fun SalesProcessScreen(
                                             )
                                         },
                                         onSelectAnotherPaymentMethod = {
+                                            // Descartar selecciones
+                                            salesProcessViewModel.onSalesProcessUiEvent(
+                                                SalesProcessUiEvent.PaymentMethodSelected(null)
+                                            )
+                                            salesProcessViewModel.onSalesProcessUiEvent(
+                                                SalesProcessUiEvent.CreditInstalmentsSelected(null)
+                                            )
+                                            salesProcessViewModel.onSalesProcessUiEvent(
+                                                SalesProcessUiEvent.DebitChangeSelected(null)
+                                            )
+
                                             navHostController.navigate(
                                                 route = PaymentTypeSelection,
                                                 builder = {
@@ -568,7 +602,7 @@ fun SalesProcessScreen(
                                         },
                                         whenRegisterSaleIsFailed = { registerSaleResult: RegisterSaleResult ->
                                             navHostController.navigate(
-                                                route = FailedPayment,
+                                                route = FailedSale,
                                                 builder = {
                                                     popUpTo(0) {
                                                         inclusive = true

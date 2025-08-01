@@ -1,5 +1,6 @@
 package com.soleel.paymentapp.feature.salesprocess.payment.registerpayment
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -48,6 +49,8 @@ fun ProcessPaymentScreen(
     navigateToFailedPayment: () -> Unit,
     navigateToRegisterSale: (sale: Sale, paymentResult: PaymentResult) -> Unit
 ) {
+    BackHandler(enabled = true, onBack = { })
+
     LaunchedEffect(Unit) {
         registerPaymentViewModel.startPaymentProcess(navigateToRegisterSale)
     }

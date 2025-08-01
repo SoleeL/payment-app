@@ -1,5 +1,6 @@
 package com.soleel.paymentapp.feature.salesprocess.payment.contactlessreading
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -63,6 +64,8 @@ fun ContactlessReadingScreen(
     navigateToVerificationMethod: () -> Unit,
     navigateToFailedPayment: (paymentResult: PaymentResult) -> Unit
 ) {
+    BackHandler(enabled = true, onBack = { })
+
     LaunchedEffect(Unit) {
         contactlessReadingViewModel.startContactlessReading(
             withOtherReadingInterface = navigateToContactReading,

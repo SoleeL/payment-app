@@ -1,5 +1,6 @@
 package com.soleel.paymentapp.feature.salesprocess.setup.creditinstalmentsselection
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -18,10 +19,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.soleel.paymentapp.core.model.Sale
 import com.soleel.paymentapp.core.ui.utils.LongDevicePreview
 import com.soleel.paymentapp.core.ui.utils.WithFakeSystemBars
 import com.soleel.paymentapp.core.ui.utils.WithFakeTopAppBar
+import com.soleel.paymentapp.feature.salesprocess.SalesProcessUiEvent
 
 @LongDevicePreview
 @Composable
@@ -37,7 +38,8 @@ private fun CreditInstalmentsSelectionScreenLongPreview() {
                 content = {
                     CreditInstalmentsSelectionScreen(
                         creditInstalmentsSelectionViewModel = creditInstalmentsSelectionViewModel,
-                        navigateToPaymentProcess = { }
+                        navigateToPaymentProcess = { },
+                        onBack = { }
                     )
                 }
             )
@@ -48,8 +50,11 @@ private fun CreditInstalmentsSelectionScreenLongPreview() {
 @Composable
 fun CreditInstalmentsSelectionScreen(
     creditInstalmentsSelectionViewModel: CreditInstalmentsSelectionViewModel = hiltViewModel(),
-    navigateToPaymentProcess: (creditInstalmentsSelected: Int?) -> Unit
+    navigateToPaymentProcess: (creditInstalmentsSelected: Int?) -> Unit,
+    onBack: () -> Unit
 ) {
+    BackHandler(enabled = true, onBack = onBack)
+
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.SpaceBetween,

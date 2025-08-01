@@ -1,5 +1,6 @@
 package com.soleel.paymentapp.feature.salesprocess.outcome.successfulsale
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,7 +29,21 @@ import com.soleel.paymentapp.feature.salesprocess.outcome.component.SaleResult
 
 
 @Composable
-fun SuccessfulSaleScreen(finalizeSale: () -> Unit) {
+fun SuccessfulSaleScreen(
+    finalizeSale: () -> Unit
+) {
+    BackHandler(
+        enabled = true,
+        onBack = {
+            // TODO: si ya se abrio un modal... entonces se permite terminal
+            if (true) {
+                finalizeSale()
+            } else {
+                // TODO: abrir modal
+            }
+        }
+    )
+
     Column(
         modifier = Modifier
             .fillMaxSize()

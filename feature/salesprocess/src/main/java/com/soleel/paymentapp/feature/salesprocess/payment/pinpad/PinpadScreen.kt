@@ -1,5 +1,6 @@
 package com.soleel.paymentapp.feature.salesprocess.payment.pinpad
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -61,6 +62,12 @@ fun PinpadScreen(
     navigateToFailedPayment: () -> Unit, // TODO: IMplementar rechazo por KSN para prueba
     navigateToProcessPayment: () -> Unit
 ) {
+    BackHandler(
+        enabled = true,
+        onBack = {
+            // TODO: Implementar modal
+        }
+    )
     Column(
         modifier = Modifier
             .fillMaxSize()

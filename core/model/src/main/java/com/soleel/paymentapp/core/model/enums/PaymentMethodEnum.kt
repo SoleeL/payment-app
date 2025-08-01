@@ -14,9 +14,8 @@ enum class PaymentMethodEnum(
     DEBIT(id = 3, value = "Debito", icon =  R.drawable.ic_payment_method_debit);
 
     companion object {
-        fun fromId(id: Int): PaymentMethodEnum {
-            val paymentMethodEnum: PaymentMethodEnum? = entries.find(predicate = { it.id == id })
-            return paymentMethodEnum ?: CASH
+        fun fromId(id: Int?): PaymentMethodEnum? {
+            return entries.find(predicate = { it.id == id })
         }
     }
 }

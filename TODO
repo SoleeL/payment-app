@@ -2,7 +2,8 @@
 
 ## Prioridad
 - [X] Limpiar calculadora al finalizar una venta
-- [ ] Implementar flujo de Intent
+- [X] Implementar flujo de entrada de Intent
+- [ ] Implementar flujo de salida de Intent
 
 ## Alta
 - [X] PaymentTypeSelection: Implementar vista y logica
@@ -19,34 +20,33 @@
 - [ ] PendingSale: Implementar vista y logica
 - [ ] FailedSale: Implementar vista y logica
 
-- [ ] DebitChangeSelection: Implementar seleccion de vueltos posibles
-
 - [X] ContactlessReading: Eliminar stack al navegar a ella
-- [ ] ContactlessReading: bloquear navegacion de BackButton
+- [X] ContactlessReading: bloquear navegacion de BackButton
 
 - [X] ContactReading: Eliminar stack al navegar a ella
-- [ ] ContactlContactReadingessReading: bloquear navegacion de BackButton
+- [X] ContactlContactReadingessReading: bloquear navegacion de BackButton
 
 - [X] Pinpad: Eliminar stack al navegar a ella
-- [ ] Pinpad: bloquear navegacion de BackButton
+- [ ] Pinpad: implementar modal de cancelacion
 
 - [X] ProcessPayment: Eliminar stack al navegar a ella
-- [ ] ProcessPayment: bloquear navegacion de BackButton
+- [X] ProcessPayment: bloquear navegacion de BackButton
 
 - [X] FailedPayment: Eliminar stack al navegar a ella
 - [ ] FailedPayment: Al presionar BackButton presentar Modal de cancelacion
 - [ ] FailedPayment: No se ve el texto del mensaje del error cuando el thema es el claro
 
-- [ ] RegisterSale: Eliminar stack al navegar a ella
-- [ ] RegisterSale: bloquear navegacion de BackButton
+- [X] RegisterSale: Eliminar stack al navegar a ella
+- [X] RegisterSale: bloquear navegacion de BackButton
 
-- [ ] SuccessfulSale: Eliminar stack al navegar a ella
-- [ ] SuccessfulSale: Al presionar BackButton presentar Modal de cancelacion
+- [X] SuccessfulSale: Eliminar stack al navegar a ella
+- [ ] SuccessfulSale: mostrar modal si aun no se se imprimeo o otra interaccion de voucher, si ya se hizo... entonces finalizar la centa
 
-- [ ] PendingSale: Eliminar stack al navegar a ella
-- [ ] PendingSale: Al presionar BackButton presentar Modal de cancelacion
+- [X] PendingSale: Eliminar stack al navegar a ella
+- [ ] PendingSale: mostrar modal de que la venta esta pendiente de registro
+- [ ] PendingSale: botonera con opciones de impresion y reintentar registro (si no se pudo registrar venta, las opciones de corre y qr no tienen sentido)
 
-- [ ] FailedSale: Eliminar stack al navegar a ella
+- [X] FailedSale: Eliminar stack al navegar a ella
 - [ ] FailedSale: Al presionar BackButton presentar Modal de cancelacion
 
 - [ ] salesProcessGraph: Implementar logica de navigacion al cancelar (Modal de cancelacion)

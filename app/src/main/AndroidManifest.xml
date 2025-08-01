@@ -21,14 +21,9 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
             <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
+                <action android:name="com.soleel.paymentapp.PROCESS_INTENT_TO_SALE" />
                 <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data
-                    android:scheme="paymentapp"
-                    android:host="process_sale" />
             </intent-filter>
         </activity>
     </application>

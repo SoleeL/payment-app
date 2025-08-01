@@ -1,190 +1,76 @@
 package com.soleel.paymentapp
 
+import android.app.Activity
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.soleel.paymentapp.core.ui.theme.PaymentAppTheme
 import dagger.hilt.android.AndroidEntryPoint
+import android.content.Intent
+import com.soleel.paymentapp.feature.home.HomeGraph
+import com.soleel.paymentapp.feature.salesprocess.SalesProcessGraph
+import com.soleel.paymentapp.util.validateIntentSaleArgs
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        var startDestination: Any = HomeGraph // default
+        if (intent?.action == "com.soleel.paymentapp.PROCESS_INTENT_TO_SALE") {
+            val extras = intent.extras
+
+            val commerceId: String = extras?.getString("commerceId", "") ?: ""
+            val totalAmount: Int = extras?.getInt("totalAmount", 0) ?: 0
+            val paymentMethod: Int = extras?.getInt("paymentMethod", -1) ?: -1
+            val cashChange: Int = extras?.getInt("cashChange", -1) ?: -1
+            val creditInstalments: Int = extras?.getInt("creditInstalments", -1) ?: -1
+            val debitChange: Int = extras?.getInt("debitChange", -1) ?: -1
+
+            val bundle: Bundle? = validateIntentSaleArgs(
+                commerceId = commerceId,
+                totalAmount = totalAmount,
+                paymentMethod = paymentMethod,
+                cashChange = cashChange,
+                creditInstalments = creditInstalments,
+                debitChange = debitChange
+            )
+
+            if (bundle != null) {
+                val resultIntent: Intent = Intent()
+                resultIntent.putExtras(bundle)
+                setResult(Activity.RESULT_OK, resultIntent)
+                finish()
+                return
+            }
+
+            startDestination = SalesProcessGraph(
+                totalAmount = totalAmount,
+                paymentMethod = paymentMethod,
+                cashChange = cashChange,
+                creditInstalments = creditInstalments,
+                debitChange = debitChange
+            )
+        }
+
+//        startDestination = SalesProcessGraph(
+//            totalAmount = 10000,
+//            paymentMethod = -1,
+//            cashChange = -1,
+//            creditInstalments = -1,
+//            debitChange = -1
+//        )
+
         enableEdgeToEdge()
         setContent(
             content = {
                 PaymentAppTheme(
                     content = {
-                        PaymentAppNavigationGraph()
+                        PaymentAppNavigationGraph(startDestination)
                     }
                 )
             }
         )
     }
-
-//    override fun onNewIntent(intent: Intent?) {
-//        super.onNewIntent(intent)
-//        intent?.let { handleIntentIfNeeded(it) }
-//    }
-//
-//    private fun handleIntentIfNeeded(intent: Intent) {
-//        if (intent.action == "com.soleel.paymentapp.PROCESS_INTENT_TO_SALE") {
-//            val rawJson = intent.getStringExtra("payload") ?: run {
-//                sendIntentResult(
-//                    IntentSaleResultInternal(
-//                        status = IntentSaleStatusEnum.ERROR,
-//                        message = "Falta el campo payload",
-//                        errorCode = "ERR_MISSING_PAYLOAD"
-//                    )
-//                )
-//                return
-//            }
-//
-//            val json: Json = Json(builderAction = { ignoreUnknownKeys = true })
-//
-//            val request = try {
-//                json.decodeFromString<IntentSaleRequestExternal>(rawJson)
-//            } catch (e: Exception) {
-//                sendIntentResult(
-//                    IntentSaleResultInternal(
-//                        status = IntentSaleStatusEnum.ERROR,
-//                        message = "JSON inválido",
-//                        errorCode = "ERR_INVALID_JSON"
-//                    )
-//                )
-//                return
-//            }
-//
-//            if (request.commerceId.isBlank()) {
-//                sendIntentResult(
-//                    IntentSaleResultInternal(
-//                        status = IntentSaleStatusEnum.ERROR,
-//                        message = "Parametro 'id de comercio' invalido",
-//                        errorCode = "ERR_INVALID_PARAMS"
-//                    )
-//                )
-//                return
-//            }
-//
-//            if (request.totalAmount <= 0 || request.totalAmount > 9999999) {
-//                sendIntentResult(
-//                    IntentSaleResultInternal(
-//                        status = IntentSaleStatusEnum.ERROR,
-//                        message = "Parametro 'Total a pagar' invalido",
-//                        errorCode = "ERR_INVALID_PARAMS"
-//                    )
-//                )
-//                return
-//            }
-//
-//            when (request.paymentMethod) {
-//                -1 -> {
-//                    if (request.cashChange != -1) {
-//                        sendIntentResult(
-//                            IntentSaleResultInternal(
-//                                status = IntentSaleStatusEnum.ERROR,
-//                                message = "Parametro 'Vuelto para efectivo' invalido cuando esta habilitada la seleccion manual del 'Metodo de pago'",
-//                                errorCode = "ERR_INVALID_PARAMS"
-//                            )
-//                        )
-//                        return
-//                    }
-//                    if (request.creditInstalments != -1) {
-//                        sendIntentResult(
-//                            IntentSaleResultInternal(
-//                                status = IntentSaleStatusEnum.ERROR,
-//                                message = "Parametro 'Cantidad de cuotas' invalido cuando esta habilitada la seleccion manual del 'Metodo de pago'",
-//                                errorCode = "ERR_INVALID_PARAMS"
-//                            )
-//                        )
-//                        return
-//                    }
-//                    if (request.debitChange != -1) {
-//                        sendIntentResult(
-//                            IntentSaleResultInternal(
-//                                status = IntentSaleStatusEnum.ERROR,
-//                                message = "Parametro 'Vuelto con debito' invalido cuando esta habilitada la seleccion manual del 'Metodo de pago'",
-//                                errorCode = "ERR_INVALID_PARAMS"
-//                            )
-//                        )
-//                        return
-//                    }
-//                }
-//
-//                1 -> {
-//                    if (request.cashChange != -1 &&
-//                        request.cashChange < request.totalAmount
-//                    ) {
-//                        sendIntentResult(
-//                            IntentSaleResultInternal(
-//                                status = IntentSaleStatusEnum.ERROR,
-//                                message = "Parametro 'Vuelto para efectivo' es menor que el 'Total a pagar'",
-//                                errorCode = "ERR_INVALID_PARAMS"
-//                            )
-//                        )
-//                    }
-//                }
-//
-//                2 -> {
-//                    if (request.creditInstalments != -1 &&
-//                        request.creditInstalments != 0 &&
-//                        request.creditInstalments > 13
-//                    ) {
-//                        sendIntentResult(
-//                            IntentSaleResultInternal(
-//                                status = IntentSaleStatusEnum.ERROR,
-//                                message = "Parametro 'Cantidad de cuotas' invalido cuando esta habilitada la seleccion manual del 'Metodo de pago'",
-//                                errorCode = "ERR_INVALID_PARAMS"
-//                            )
-//                        )
-//                    }
-//                }
-//
-//                3 -> {
-//                    if (request.debitChange != -1 &&
-//                        request.debitChange != 0 &&
-//                        request.debitChange > 0
-//                    ) {
-//                        sendIntentResult(
-//                            IntentSaleResultInternal(
-//                                status = IntentSaleStatusEnum.ERROR,
-//                                message = "Parametro 'Cantidad de cuotas' invalido cuando esta habilitada la seleccion manual del 'Metodo de pago'",
-//                                errorCode = "ERR_INVALID_PARAMS"
-//                            )
-//                        )
-//                    }
-//                }
-//
-//                else -> {
-//                    sendIntentResult(
-//                        IntentSaleResultInternal(
-//                            status = IntentSaleStatusEnum.ERROR,
-//                            message = "Parametro 'Metodo de pago' invalido",
-//                            errorCode = "ERR_INVALID_PARAMS"
-//                        )
-//                    )
-//                    return
-//                }
-//            }
-//
-//            val saleRoute = SalesProcessGraph(request.totalAmount.toFloat())
-//
-//            lifecycleScope.launch {
-//                mainViewModel.navigateTo(saleRoute)
-//            }
-//        }
-//    }
-
-//    private fun sendIntentResult(intentSaleResultInternal: IntentSaleResultInternal) {
-//        val intentSaleResultExternal: IntentSaleResultExternal =
-//            intentSaleResultInternal.toExternal()
-//        val json = Json.encodeToString(intentSaleResultExternal)
-//        val resultIntent = Intent().apply {
-//            putExtra("result", json)
-//        }
-//        setResult(Activity.RESULT_OK, resultIntent)
-//        finish()
-//    }
 }

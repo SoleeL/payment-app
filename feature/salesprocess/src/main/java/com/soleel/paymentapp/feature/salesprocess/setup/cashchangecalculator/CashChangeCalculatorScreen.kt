@@ -1,5 +1,6 @@
 package com.soleel.paymentapp.feature.salesprocess.setup.cashchangecalculator
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -20,7 +21,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
-import com.soleel.paymentapp.core.model.Sale
 import com.soleel.paymentapp.core.ui.utils.LongDevicePreview
 import com.soleel.paymentapp.core.ui.utils.WithFakeSystemBars
 import com.soleel.paymentapp.core.ui.utils.WithFakeTopAppBar
@@ -47,7 +47,8 @@ private fun CashChangeCalculatorScreenLongPreview() {
                 content = {
                     CashChangeCalculatorScreen(
                         cashChangeCalculatorViewModel = cashChangeCalculatorViewModel,
-                        navigateToRegisterSale = {}
+                        navigateToRegisterSale = {},
+                        onBack = { }
                     )
                 }
             )
@@ -58,8 +59,11 @@ private fun CashChangeCalculatorScreenLongPreview() {
 @Composable
 fun CashChangeCalculatorScreen(
     cashChangeCalculatorViewModel: CashChangeCalculatorViewModel = hiltViewModel(),
+    onBack: () -> Unit,
     navigateToRegisterSale: (cashChange: Int) -> Unit
 ) {
+    BackHandler(enabled = true, onBack = onBack)
+
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.SpaceBetween,

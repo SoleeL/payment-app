@@ -1,5 +1,6 @@
 package com.soleel.paymentapp.feature.salesprocess.setup.debitchangeselection
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,8 +15,11 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun DebitChangeSelectionScreen(
+    onBack: () -> Unit,
     navigateToPaymentProcess: (Int?) -> Unit
 ) {
+    BackHandler(enabled = true, onBack = onBack)
+
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.SpaceBetween,

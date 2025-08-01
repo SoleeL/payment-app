@@ -10,7 +10,7 @@ import kotlinx.serialization.Serializable
 data class Sale(
     val totalAmount: Int,
 
-    val tipTotal: Int? = null,
+//    val tipTotal: Int? = null,
     val paymentMethodSelected: PaymentMethodEnum? = null,
     val cashChangeSelected: Int? = null,
     val creditInstalmentsSelected: Int? = null,
