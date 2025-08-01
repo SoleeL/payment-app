@@ -5,14 +5,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.soleel.paymentapp.core.common.result.Result
 import com.soleel.paymentapp.core.common.result.asResult
-import com.soleel.paymentapp.core.model.Sale
+import com.soleel.paymentapp.core.model.base.Payment
+import com.soleel.paymentapp.core.model.enums.PaymentMethodEnum
 import com.soleel.paymentapp.core.model.paymentprocess.ConfirmationPaymentProcessData
-import com.soleel.paymentapp.core.model.paymentprocess.PaymentProcessData
-import com.soleel.paymentapp.core.model.paymentprocess.PaymentResult
 import com.soleel.paymentapp.core.model.paymentprocess.ValidationPaymentProcessData
 import com.soleel.paymentapp.domain.payment.IRequestConfirmingPaymentUseCase
 import com.soleel.paymentapp.domain.payment.IRequestValidationPaymentUseCase
-import com.soleel.paymentapp.domain.payment.ISavePaymentUseCase
+import com.soleel.paymentapp.domain.payment.IStorePaymentUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -48,9 +47,8 @@ open class RegisterPaymentViewModel @Inject constructor(
 
     private val requestValidationPaymentUseCase: IRequestValidationPaymentUseCase,
     private val requestConfirmationPaymentUseCase: IRequestConfirmingPaymentUseCase,
-    private val savePaymentUseCase: ISavePaymentUseCase
+    private val storePaymentUseCase: IStorePaymentUseCase
 ) : ViewModel() {
-    val sale: Sale = savedStateHandle.get<Sale>("sale") ?: Sale(totalAmount = 0)
 
     private val _validatingPaymentProcessUiState: Flow<PaymentProcessUiState<ValidationPaymentProcessData>> =
         requestValidationPaymentUseCase()
@@ -100,29 +98,45 @@ open class RegisterPaymentViewModel @Inject constructor(
                 initialValue = PaymentProcessUiState.Loading
             )
 
-    private val _savingPaymentProcessUiState: Flow<PaymentProcessUiState<PaymentProcessData>> =
-        savePaymentUseCase()
+    private fun storingPaymentProcessUiState(
+        method: PaymentMethodEnum,
+        amount: Int,
+        instalments: Int?,
+        applicationLabel: String,
+        aid: String,
+        last4: String,
+        sequenceNumber: String,
+        authCode: String
+    ): StateFlow<PaymentProcessUiState<Payment>> {
+        return storePaymentUseCase(
+            method,
+            amount,
+            instalments,
+            applicationLabel,
+            aid,
+            last4,
+            sequenceNumber,
+            authCode
+        )
             .asResult()
-            .map(transform = { this.getPaymentProcessData(it) })
-
-    private fun getPaymentProcessData(savePaymentProcessResult: Result<PaymentProcessData>): PaymentProcessUiState<PaymentProcessData> {
-        return when (savePaymentProcessResult) {
-            Result.Loading -> PaymentProcessUiState.Loading
-            is Result.Success<PaymentProcessData> -> {
-                PaymentProcessUiState.Success(savePaymentProcessResult.data)
-            }
-
-            is Result.Error -> PaymentProcessUiState.Failure(savePaymentProcessResult.exception)
-        }
-    }
-
-    private val savingPaymentProcessUiState: StateFlow<PaymentProcessUiState<PaymentProcessData>> =
-        _savingPaymentProcessUiState
+            .map { getPaymentProcessData(it) }
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5_000),
                 initialValue = PaymentProcessUiState.Loading
             )
+    }
+
+    private fun getPaymentProcessData(storePaymentProcessResult: Result<Payment>): PaymentProcessUiState<Payment> {
+        return when (storePaymentProcessResult) {
+            Result.Loading -> PaymentProcessUiState.Loading
+            is Result.Success<Payment> -> {
+                PaymentProcessUiState.Success(storePaymentProcessResult.data)
+            }
+
+            is Result.Error -> PaymentProcessUiState.Failure(storePaymentProcessResult.exception)
+        }
+    }
 
     private val _paymentStepUiState: MutableStateFlow<PaymentStepUiState> =
         MutableStateFlow<PaymentStepUiState>(PaymentStepUiState.Validating)
@@ -130,7 +144,13 @@ open class RegisterPaymentViewModel @Inject constructor(
 
     fun startPaymentProcess(
         navigateToFailedPayment: (errorCode: String, errorMessage: String) -> Unit,
-        navigateToRegisterSale: (sequenceNumber: String) -> Unit
+        navigateToRegisterSale: (uuidPayment: String) -> Unit,
+        method: PaymentMethodEnum,
+        amount: Int,
+        instalments: Int?,
+        applicationLabel: String,
+        aid: String,
+        last4: String
     ) {
         viewModelScope.launch {
             _paymentStepUiState.value = PaymentStepUiState.Validating
@@ -170,13 +190,22 @@ open class RegisterPaymentViewModel @Inject constructor(
 
             _paymentStepUiState.value = PaymentStepUiState.Saving
 
-            val savingPaymentProcessResult: PaymentProcessUiState<PaymentProcessData> =
-                savingPaymentProcessUiState
+            val storingPaymentProcessResult: PaymentProcessUiState<Payment> =
+                storingPaymentProcessUiState(
+                    method,
+                    amount,
+                    instalments,
+                    applicationLabel,
+                    aid,
+                    last4,
+                    validatingPaymentProcessResult.data.sequenceNumber!!, // README: HIPOTETICO
+                    validatingPaymentProcessResult.data.authCode!! // README: HIPOTETICO
+                )
                     .filter(predicate = { it !is PaymentProcessUiState.Loading })
                     .first()
 
-            if (savingPaymentProcessResult !is PaymentProcessUiState.Success) {
-                val failure = savingPaymentProcessResult as PaymentProcessUiState.Failure
+            if (storingPaymentProcessResult !is PaymentProcessUiState.Success) {
+                val failure = storingPaymentProcessResult as PaymentProcessUiState.Failure
                 navigateToFailedPayment(
                     failure.errorCode ?: "UNKNOWN CODE",
                     failure.errorMessage ?: "Error desconocido"
@@ -188,7 +217,7 @@ open class RegisterPaymentViewModel @Inject constructor(
 
             delay(1000)
 
-            navigateToRegisterSale(validatingPaymentProcessResult.data.sequenceNumber ?: "00000000")
+            navigateToRegisterSale(storingPaymentProcessResult.data.id.toString())
         }
     }
 }

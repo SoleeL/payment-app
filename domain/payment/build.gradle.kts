@@ -10,6 +10,7 @@ android {
 dependencies {
     implementation(projects.core.model)
 
+    implementation(projects.data.payment)
     implementation(projects.data.preferences)
 }
 

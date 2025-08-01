@@ -1,6 +1,6 @@
 package com.soleel.paymentapp.domain.sale
 
-import com.soleel.paymentapp.core.model.Sale
+import com.soleel.paymentapp.core.model.base.Sale
 import com.soleel.paymentapp.core.model.enums.DeveloperPreferenceEnum
 import com.soleel.paymentapp.core.model.outcomeprocess.StoreSaleProcessData
 import com.soleel.paymentapp.data.preferences.developer.IDeveloperPreferences
@@ -11,6 +11,7 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import java.time.LocalDateTime
 import java.util.UUID
 import javax.inject.Inject
 
@@ -49,7 +50,18 @@ class StoreSaleUseCaseMock @Inject constructor(
                 emit(
                     StoreSaleProcessData(
                         saleUUID = UUID.randomUUID(),
-                        sale = Sale(totalAmount = 7000),
+                        sale = Sale(
+                            id = UUID.randomUUID(),
+                            paymentId = UUID.randomUUID(),
+                            subtotal = 5000,
+                            tip = 1000,
+                            debitCashback = 1000,
+                            cashChangeSelected = null,
+                            source = "MOCK",
+                            versionApp = "1.0.0",
+                            createdAt = LocalDateTime.now(),
+                            updatedAt = LocalDateTime.now()
+                        ),
                         timestamp = System.currentTimeMillis()
                     )
                 )

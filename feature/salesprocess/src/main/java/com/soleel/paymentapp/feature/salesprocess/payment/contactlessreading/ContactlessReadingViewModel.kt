@@ -47,7 +47,7 @@ open class ContactlessReadingViewModel @Inject constructor(
     fun startContactlessReading(
         withOtherReadingInterface: () -> Unit,
         onFailedPayment: (errorCode: String, errorMessage: String) -> Unit,
-        onVerificationMethod: (brand: String, last4: Int) -> Unit
+        onVerificationMethod: (applicationLabel: String, aid: String, last4: String) -> Unit
     ) {
         viewModelScope.launch {
             _contactlessReadingStepUiState.value = ReadingStepUiState.Active
@@ -93,8 +93,9 @@ open class ContactlessReadingViewModel @Inject constructor(
             delay(1000)
 
             onVerificationMethod(
-                contactlessReadingResult.data.cardBrand,
-                contactlessReadingResult.data.cardNumber.takeLast(4).toInt()
+                contactlessReadingResult.data.applicationLabel,
+                contactlessReadingResult.data.aid,
+                contactlessReadingResult.data.last4
             )
         }
     }

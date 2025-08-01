@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.soleel.paymentapp.core.common.result.Result
 import com.soleel.paymentapp.core.common.result.asResult
-import com.soleel.paymentapp.core.model.Sale
 import com.soleel.paymentapp.core.model.outcomeprocess.RecordingSaleProcessData
 import com.soleel.paymentapp.core.model.outcomeprocess.StoreSaleProcessData
 import com.soleel.paymentapp.core.model.paymentprocess.PaymentResult
@@ -46,7 +45,6 @@ open class RegisterSaleViewModel @Inject constructor(
     private val storeSaleUseCase: IStoreSaleUseCase,
     private val recordingSaleUseCase: IRecordingSaleUseCase,
 ) : ViewModel() {
-    val sale: Sale = savedStateHandle.get<Sale>("sale") ?: Sale(totalAmount = 0)
     val paymentResult: PaymentResult =
         savedStateHandle.get<PaymentResult>("paymentResult") ?: PaymentResult(isSuccess = false)
 

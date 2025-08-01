@@ -1,10 +1,9 @@
 package com.soleel.paymentapp.core.model.readingprocess
 
 data class InterfaceReadData(
-    val cardNumber: String,
-    val cardBrand: String,
-    val cardHolderName: String?,
+    val applicationLabel: String,
+    val aid: String,
+    val last4: String,
     val expirationDate: String?,
-    val isValid: Boolean,
-    val additionalInfo: Map<String, Any>? = null
+    val isValid: Boolean
 )

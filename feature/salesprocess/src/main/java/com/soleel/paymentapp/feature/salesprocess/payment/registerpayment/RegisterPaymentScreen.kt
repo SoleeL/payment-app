@@ -18,39 +18,39 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.soleel.paymentapp.core.model.enums.PaymentMethodEnum
 import com.soleel.paymentapp.core.ui.utils.LongDevicePreview
 import com.soleel.paymentapp.core.ui.utils.WithFakeSystemBars
 import com.soleel.paymentapp.core.ui.utils.WithFakeTopAppBar
 import com.soleel.paymentapp.feature.salesprocess.component.AdBanner
 import kotlinx.coroutines.delay
 
-@LongDevicePreview
-@Composable
-private fun ProcessPaymentScreenLongPreview() {
-    WithFakeSystemBars(
-        content = {
-            WithFakeTopAppBar(
-                content = {
-                    ProcessPaymentScreen(
-                        navigateToFailedPayment = { _, _ -> },
-                        navigateToRegisterSale = { _ -> },
-                    )
-                }
-            )
-        }
-    )
-}
 
 @Composable
 fun ProcessPaymentScreen(
     registerPaymentViewModel: RegisterPaymentViewModel = hiltViewModel(),
     navigateToFailedPayment: (errorCode: String, errorMessage: String) -> Unit,
-    navigateToRegisterSale: (sequenceNumber: String) -> Unit
+    navigateToRegisterSale: (uuidPayment: String) -> Unit,
+    method: PaymentMethodEnum,
+    amount: Int,
+    instalments: Int?,
+    applicationLabel: String,
+    aid: String,
+    last4: String,
 ) {
     BackHandler(enabled = true, onBack = { })
 
     LaunchedEffect(Unit) {
-        registerPaymentViewModel.startPaymentProcess(navigateToFailedPayment, navigateToRegisterSale)
+        registerPaymentViewModel.startPaymentProcess(
+            navigateToFailedPayment,
+            navigateToRegisterSale,
+            method,
+            amount,
+            instalments,
+            applicationLabel,
+            aid,
+            last4
+        )
     }
 
     val paymentStep: PaymentStepUiState by registerPaymentViewModel.paymentStepUiState.collectAsStateWithLifecycle()

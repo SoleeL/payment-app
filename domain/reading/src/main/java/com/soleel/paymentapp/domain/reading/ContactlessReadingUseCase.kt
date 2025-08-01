@@ -33,29 +33,40 @@ class ContactlessReadingUseCaseMock @Inject constructor(
     override fun invoke(): Flow<InterfaceReadData> = flow {
         delay(5000)
 
-        val fallbackEnabled = developerPreferences.isEnabled(DeveloperPreferenceEnum.CONTACTLESS_READER_FALLBACK)
-        val invalidCardEnabled = developerPreferences.isEnabled(DeveloperPreferenceEnum.CONTACTLESS_READER_INVALID_CARD)
+        val fallbackEnabled =
+            developerPreferences.isEnabled(DeveloperPreferenceEnum.CONTACTLESS_READER_FALLBACK)
+        val invalidCardEnabled =
+            developerPreferences.isEnabled(DeveloperPreferenceEnum.CONTACTLESS_READER_INVALID_CARD)
 
         when {
             fallbackEnabled -> throw InterfaceFallbackException()
             invalidCardEnabled -> throw InvalidCardException()
 
-            else -> emit(
-                InterfaceReadData(
-                    cardNumber = "1234 5678 9012 3456",
-                    cardBrand = "VISA DEBIT",
-                    cardHolderName = "Juan Pérez",
-                    expirationDate = "12/25",
-                    isValid = true,
-                    additionalInfo = mapOf(
-                        "transactionId" to "TX123456789",
-                        "authCode" to "AUTH98765"
-                    )
+            else -> {
+                val labels = listOf("MASTERCARD DEBIT", "VISA CREDIT", "AMEX", "DISCOVER")
+                val aids =
+                    listOf("A0000000041010", "A0000000031010", "A00000002501", "A0000001523010")
+
+                val randomLabel = labels.random()
+                val randomAid = aids.random()
+                val randomLast4 = (1000..9999).random().toString()
+                val randomExp = "0${(1..9).random()}/${(26..30).random()}"
+
+                val randomData = InterfaceReadData(
+                    applicationLabel = randomLabel,
+                    aid = randomAid,
+                    last4 = randomLast4,
+                    expirationDate = randomExp,
+                    isValid = true
                 )
-            )
+
+                emit(randomData)
+            }
         }
     }
 }
 
-class InterfaceFallbackException(message: String = "EMVCo fallback: cambiar a otra interfaz") : Exception(message)
+class InterfaceFallbackException(message: String = "EMVCo fallback: cambiar a otra interfaz") :
+    Exception(message)
+
 class InvalidCardException(message: String = "EMVCo: tarjeta invalida") : Exception(message)

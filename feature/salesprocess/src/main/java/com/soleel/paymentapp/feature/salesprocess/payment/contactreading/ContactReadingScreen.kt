@@ -31,7 +31,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.soleel.paymentapp.core.model.paymentprocess.PaymentResult
 import com.soleel.paymentapp.core.ui.R
 import com.soleel.paymentapp.core.ui.utils.LongDevicePreview
 import com.soleel.paymentapp.core.ui.utils.WithFakeSystemBars
@@ -49,7 +48,7 @@ private fun ContactReadingScreenLongPreview() {
                 content = {
                     ContactReadingScreen(
                         navigateToFailedPayment = { _, _ -> },
-                        navigateToVerificationMethod = { _, _ -> },
+                        navigateToVerificationMethod = { _, _, _ -> },
 
                         )
                 }
@@ -62,7 +61,7 @@ private fun ContactReadingScreenLongPreview() {
 fun ContactReadingScreen(
     contactReadingViewModel: ContactReadingViewModel = hiltViewModel(),
     navigateToFailedPayment: (errorCode: String, errorMessage: String) -> Unit,
-    navigateToVerificationMethod: (brand: String, last4: Int) -> Unit
+    navigateToVerificationMethod: (applicationLabel: String, aid: String, last4: String) -> Unit
 ) {
     BackHandler(enabled = true, onBack = { })
 

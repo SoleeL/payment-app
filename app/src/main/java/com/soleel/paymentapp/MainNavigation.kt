@@ -22,15 +22,12 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.soleel.paymentapp.core.model.Sale
 import com.soleel.paymentapp.core.model.intentsale.IntentSaleStatusEnum
-import com.soleel.paymentapp.core.navigation.createNavType
 import com.soleel.paymentapp.feature.home.HomeGraph
 import com.soleel.paymentapp.feature.home.homeNavigationGraph
 import com.soleel.paymentapp.feature.salesprocess.SalesProcessGraph
 import com.soleel.paymentapp.feature.salesprocess.salesProcessGraph
 import kotlinx.serialization.Serializable
-import kotlin.reflect.typeOf
 
 @Serializable
 object Loading
@@ -68,7 +65,6 @@ fun PaymentAppNavigationGraph(
             )
 
             salesProcessGraph(
-                saleToNavType = mapOf(typeOf<Sale>() to createNavType<Sale>()),
                 finalizeSale = {
                     navHostController.popBackStack(HomeGraph, inclusive = true)
                     navHostController.navigate(HomeGraph)

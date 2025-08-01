@@ -27,12 +27,16 @@ include(":core:model")
 include(":core:navigation")
 include(":core:ui")
 
+include(":data:payment")
 include(":data:preferences")
+include(":data:sale")
 
 include(":domain:payment")
+include(":domain:pinpad")
 include(":domain:reading")
+include(":domain:sale")
 
 include(":feature:home")
 include(":feature:salesprocess")
-include(":domain:sale")
-include(":domain:pinpad")
+
+include(":core:database")
