@@ -18,8 +18,9 @@ data class SalesProcessUiModel(
     val creditInstalmentsSelected: Int? = null,
     val debitChangeSelected: Int? = null,
 
-    val cardBrandDetected: String? = null,
-    val last4Obtained: Int? = null,
+    val applicationLabelObtained: String? = null,
+    val aidObtained: String? = null,
+    val last4Obtained: String? = null,
 
     val errorCode: String? = null,
     val errorMessage: String? = null,
@@ -27,7 +28,7 @@ data class SalesProcessUiModel(
     val pinBlock: String? = null,
     val ksn: String? = null,
 
-    val sequenceNumber: String? = null,
+    val uuidPayment: String? = null,
 
     val uuidSale: String? = null
 )
@@ -43,8 +44,9 @@ sealed class SalesProcessUiEvent {
 
     data class DebitChangeSelected(val debitChangeSelected: Int?) : SalesProcessUiEvent()
 
-    data class CardBrandDetected(val brand: String?) : SalesProcessUiEvent()
-    data class Last4Obtained(val last4: Int?) : SalesProcessUiEvent()
+    data class ApplicationLabelObtained(val applicationLabel: String?) : SalesProcessUiEvent()
+    data class AidObtained(val aid: String?) : SalesProcessUiEvent()
+    data class Last4Obtained(val last4: String?) : SalesProcessUiEvent()
 
     data class ReadingErrorCode(val errorCode: String?) : SalesProcessUiEvent()
     data class ReadingErrorMessage(val errorMessage: String?) : SalesProcessUiEvent()
@@ -52,7 +54,7 @@ sealed class SalesProcessUiEvent {
     data class SavePinBlock(val pinBlock: String?) : SalesProcessUiEvent()
     data class SaveKSN(val ksn: String?) : SalesProcessUiEvent()
 
-    data class SaveSequenceNumber(val  sequenceNumber: String?) : SalesProcessUiEvent()
+    data class UUIDPayment(val  uuidPayment: String?) : SalesProcessUiEvent()
 
     data class UUIDSale(val uuidSale: String?) : SalesProcessUiEvent()
 }
@@ -112,9 +114,15 @@ open class SalesProcessViewModel @Inject constructor(
                 )
             }
 
-            is SalesProcessUiEvent.CardBrandDetected -> {
+            is SalesProcessUiEvent.ApplicationLabelObtained -> {
                 _salesProcessUiModel = salesProcessUiModel.copy(
-                    cardBrandDetected = event.brand
+                    applicationLabelObtained = event.applicationLabel
+                )
+            }
+
+            is SalesProcessUiEvent.AidObtained -> {
+                _salesProcessUiModel = salesProcessUiModel.copy(
+                    aidObtained = event.aid
                 )
             }
 
@@ -148,9 +156,9 @@ open class SalesProcessViewModel @Inject constructor(
                 )
             }
 
-            is SalesProcessUiEvent.SaveSequenceNumber -> {
+            is SalesProcessUiEvent.UUIDPayment -> {
                 _salesProcessUiModel = salesProcessUiModel.copy(
-                    sequenceNumber = event.sequenceNumber
+                    uuidPayment = event.uuidPayment
                 )
             }
 

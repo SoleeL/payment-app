@@ -21,16 +21,13 @@ import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.soleel.paymentapp.core.component.SalesSummaryHeader
-import com.soleel.paymentapp.core.model.Sale
 import com.soleel.paymentapp.core.model.enums.PaymentMethodEnum
 import com.soleel.paymentapp.core.model.intentsale.IntentSaleStatusEnum
-import com.soleel.paymentapp.core.navigation.createNavType
 import com.soleel.paymentapp.core.ui.utils.LongDevicePreview
 import com.soleel.paymentapp.core.ui.utils.WithFakeSystemBars
 import com.soleel.paymentapp.core.ui.utils.WithFakeTopAppBar
@@ -48,8 +45,6 @@ import com.soleel.paymentapp.feature.salesprocess.setup.creditinstalmentsselecti
 import com.soleel.paymentapp.feature.salesprocess.setup.debitchangeselection.DebitChangeSelectionScreen
 import com.soleel.paymentapp.feature.salesprocess.setup.paymentypeselection.PaymentTypeSelectionScreen
 import kotlinx.serialization.Serializable
-import kotlin.reflect.KType
-import kotlin.reflect.typeOf
 
 
 @LongDevicePreview
@@ -67,7 +62,6 @@ private fun SalesProcessScreenLongPreview() {
                         salesProcessViewModel = SalesProcessViewModel(
                             savedStateHandle = fakeSavedStateHandle
                         ),
-                        saleToNavType = mapOf(typeOf<Sale>() to createNavType<Sale>()),
                         finalizeSale = {},
                         finishWithResult = null
                     )
@@ -87,14 +81,12 @@ data class SalesProcessGraph(
 )
 
 fun NavGraphBuilder.salesProcessGraph(
-    saleToNavType: Map<KType, NavType<Sale>>,
     finalizeSale: () -> Unit,
     finishWithResult: ((saleId: String?, status: IntentSaleStatusEnum, message: String?, errorCode: String?) -> Unit)?
 ) {
     composable<SalesProcessGraph>(
         content = {
             SalesProcessScreen(
-                saleToNavType = saleToNavType,
                 finalizeSale = finalizeSale,
                 finishWithResult = finishWithResult
             )
@@ -179,7 +171,6 @@ fun getStartDestination(salesProcessUiModel: SalesProcessUiModel): Any {
 fun SalesProcessScreen(
     navHostController: NavHostController = rememberNavController(),
     salesProcessViewModel: SalesProcessViewModel = hiltViewModel(),
-    saleToNavType: Map<KType, NavType<Sale>>,
     finalizeSale: () -> Unit,
     finishWithResult: ((saleId: String?, status: IntentSaleStatusEnum, message: String?, errorCode: String?) -> Unit)?
 ) {
@@ -236,6 +227,7 @@ fun SalesProcessScreen(
                                     } else {
                                         IntentSaleStatusEnum.CANCELLED
                                     }
+
                                 finishWithResult?.invoke(
                                     salesProcessUiModel.uuidSale,
                                     status,
@@ -324,7 +316,6 @@ fun SalesProcessScreen(
                             )
 
                             composable<CashChangeCalculator>(
-                                typeMap = saleToNavType, // TODO... SE TENE QUE PASAR DESDE EL NAV PRINCIPAL
                                 content = {
                                     CashChangeCalculatorScreen(
                                         onBack = {
@@ -352,7 +343,6 @@ fun SalesProcessScreen(
                             )
 
                             composable<CreditInstallmentsSelection>(
-                                typeMap = saleToNavType,
                                 content = {
                                     CreditInstalmentsSelectionScreen(
                                         onBack = {
@@ -380,7 +370,6 @@ fun SalesProcessScreen(
                             )
 
                             composable<DebitChangeSelection>(
-                                typeMap = saleToNavType,
                                 content = {
                                     DebitChangeSelectionScreen(
                                         onBack = {
@@ -410,7 +399,6 @@ fun SalesProcessScreen(
                             // PAYMENT
 
                             composable<ContactlessReading>(
-                                typeMap = saleToNavType,
                                 content = {
                                     ContactlessReadingScreen(
                                         navigateToContactReading = {
@@ -426,13 +414,19 @@ fun SalesProcessScreen(
                                                 }
                                             )
                                         },
-                                        navigateToVerificationMethod = { brand: String, last4: Int ->
+                                        navigateToVerificationMethod = { applicationLabel: String, aid: String, last4: String ->
                                             salesProcessViewModel.onSalesProcessUiEvent(
-                                                SalesProcessUiEvent.CardBrandDetected(brand)
+                                                SalesProcessUiEvent.ApplicationLabelObtained(
+                                                    applicationLabel
+                                                )
+                                            )
+                                            salesProcessViewModel.onSalesProcessUiEvent(
+                                                SalesProcessUiEvent.AidObtained(aid)
                                             )
                                             salesProcessViewModel.onSalesProcessUiEvent(
                                                 SalesProcessUiEvent.Last4Obtained(last4)
                                             )
+
                                             navHostController.navigate(
                                                 route = Pinpad,
                                                 builder = {
@@ -468,9 +462,14 @@ fun SalesProcessScreen(
                             composable<ContactReading>(
                                 content = {
                                     ContactReadingScreen(
-                                        navigateToVerificationMethod = { brand: String, last4: Int ->
+                                        navigateToVerificationMethod = { applicationLabel: String, aid: String, last4: String ->
                                             salesProcessViewModel.onSalesProcessUiEvent(
-                                                SalesProcessUiEvent.CardBrandDetected(brand)
+                                                SalesProcessUiEvent.ApplicationLabelObtained(
+                                                    applicationLabel
+                                                )
+                                            )
+                                            salesProcessViewModel.onSalesProcessUiEvent(
+                                                SalesProcessUiEvent.AidObtained(aid)
                                             )
                                             salesProcessViewModel.onSalesProcessUiEvent(
                                                 SalesProcessUiEvent.Last4Obtained(last4)
@@ -573,10 +572,10 @@ fun SalesProcessScreen(
                                                 }
                                             )
                                         },
-                                        navigateToRegisterSale = { sequenceNumber: String ->
+                                        navigateToRegisterSale = { uuidPayment: String ->
                                             salesProcessViewModel.onSalesProcessUiEvent(
-                                                SalesProcessUiEvent.SaveSequenceNumber(
-                                                    sequenceNumber
+                                                SalesProcessUiEvent.UUIDPayment(
+                                                    uuidPayment
                                                 )
                                             )
 
@@ -589,7 +588,13 @@ fun SalesProcessScreen(
                                                     launchSingleTop = true
                                                 }
                                             )
-                                        }
+                                        },
+                                        method = salesProcessUiModel.paymentMethodSelected!!,
+                                        amount = salesProcessUiModel.totalAmount + (salesProcessUiModel.debitChangeSelected ?: 0),
+                                        instalments = salesProcessUiModel.creditInstalmentsSelected,
+                                        applicationLabel = salesProcessUiModel.applicationLabelObtained!!,
+                                        aid = salesProcessUiModel.aidObtained!!,
+                                        last4 = salesProcessUiModel.last4Obtained!!
                                     )
                                 }
                             )
@@ -620,7 +625,10 @@ fun SalesProcessScreen(
                                                 SalesProcessUiEvent.DebitChangeSelected(null)
                                             )
                                             salesProcessViewModel.onSalesProcessUiEvent(
-                                                SalesProcessUiEvent.CardBrandDetected(null)
+                                                SalesProcessUiEvent.ApplicationLabelObtained(null)
+                                            )
+                                            salesProcessViewModel.onSalesProcessUiEvent(
+                                                SalesProcessUiEvent.AidObtained(null)
                                             )
                                             salesProcessViewModel.onSalesProcessUiEvent(
                                                 SalesProcessUiEvent.Last4Obtained(null)
@@ -638,7 +646,7 @@ fun SalesProcessScreen(
                                                 SalesProcessUiEvent.SaveKSN(null)
                                             )
                                             salesProcessViewModel.onSalesProcessUiEvent(
-                                                SalesProcessUiEvent.SaveSequenceNumber(null)
+                                                SalesProcessUiEvent.UUIDPayment(null)
                                             )
 
                                             navHostController.navigate(
@@ -658,7 +666,6 @@ fun SalesProcessScreen(
                             // OUTCOME
 
                             composable<RegisterSale>(
-                                typeMap = saleToNavType,
                                 content = {
                                     RegisterSaleScreen(
                                         navigateToFailedSale = { errorCode: String, errorMessage: String ->

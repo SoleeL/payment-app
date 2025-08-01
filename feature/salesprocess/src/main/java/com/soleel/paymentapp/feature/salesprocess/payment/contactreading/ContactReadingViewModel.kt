@@ -4,7 +4,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.soleel.paymentapp.core.common.result.asResult
-import com.soleel.paymentapp.core.model.paymentprocess.PaymentResult
 import com.soleel.paymentapp.domain.reading.IContactReadingUseCase
 import com.soleel.paymentapp.feature.salesprocess.payment.utils.ReadingErrorType
 import com.soleel.paymentapp.feature.salesprocess.payment.utils.ReadingStepUiState
@@ -45,7 +44,7 @@ open class ContactReadingViewModel @Inject constructor(
 
     fun startContactReading(
         onFailedPayment: (errorCode: String, errorMessage: String) -> Unit,
-        onVerificationMethod: (brand: String, last4: Int) -> Unit
+        onVerificationMethod: (applicationLabel: String, aid: String, last4: String) -> Unit
     ) {
         viewModelScope.launch {
             _contactReadingStepUiState.value = ReadingStepUiState.Active
@@ -88,8 +87,9 @@ open class ContactReadingViewModel @Inject constructor(
             delay(1000)
 
             onVerificationMethod(
-                contactReadingResult.data.cardBrand,
-                contactReadingResult.data.cardNumber.takeLast(4).toInt()
+                contactReadingResult.data.applicationLabel,
+                contactReadingResult.data.aid,
+                contactReadingResult.data.last4
             )
         }
     }

@@ -21,7 +21,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.soleel.paymentapp.core.model.Sale
 import com.soleel.paymentapp.core.model.paymentprocess.PaymentResult
 import com.soleel.paymentapp.core.ui.R
 import com.soleel.paymentapp.core.ui.utils.LongDevicePreview
@@ -48,7 +47,7 @@ private fun FailedPaymentScreenLongPreview() {
 @Composable
 fun FailedPaymentScreen(
     failedPaymentViewModel: FailedPaymentViewModel = hiltViewModel(),
-    onRetryPaymentMethod: (sale: Sale) -> Unit,
+    onRetryPaymentMethod: () -> Unit,
     onSelectAnotherPaymentMethod: () -> Unit
 ) {
     BackHandler(
@@ -66,7 +65,7 @@ fun FailedPaymentScreen(
         content = {
             FailedPaymentScreenContent(
                 failedPaymentResult = failedPaymentResult,
-                onRetryPaymentMethod = { onRetryPaymentMethod(failedPaymentViewModel.sale) },
+                onRetryPaymentMethod = { onRetryPaymentMethod() },
                 onSelectAnotherPaymentMethod = onSelectAnotherPaymentMethod
             )
         }

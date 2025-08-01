@@ -45,11 +45,15 @@ class RequestValidationPaymentUseCaseMock @Inject constructor(
             paymentRejectedEnabled -> throw PaymentRejectedException()
             else -> {
                 val randomSequenceNumber = (10000000..99999999).random()
+                val authCode = (1..6)
+                    .map { (0..15).random() }
+                    .joinToString("") { it.toString(16).uppercase() }
+
                 emit(
                     ValidationPaymentProcessData(
                         isValid = true,
                         message = "Validación exitosa",
-                        validationCode = "VAL-TEST-1234",
+                        authCode = authCode,
                         sequenceNumber = randomSequenceNumber.toString()
                     )
                 )

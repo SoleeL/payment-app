@@ -1,7 +1,7 @@
 package com.soleel.paymentapp.feature.salesprocess.payment.utils
 
-import com.soleel.paymentapp.core.model.readingprocess.InterfaceReadData
 import com.soleel.paymentapp.core.common.result.Result
+import com.soleel.paymentapp.core.model.readingprocess.InterfaceReadData
 
 fun mapReadDataToUiState(result: Result<InterfaceReadData>): ReadingUiState {
     return when (result) {
