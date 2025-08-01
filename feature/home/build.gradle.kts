@@ -9,8 +9,11 @@ android {
 }
 
 dependencies {
+    implementation(projects.core.common)
     implementation(projects.core.model)
     implementation(projects.core.ui)
 
     implementation(projects.data.preferences)
+
+    implementation(projects.domain.sale)
 }
