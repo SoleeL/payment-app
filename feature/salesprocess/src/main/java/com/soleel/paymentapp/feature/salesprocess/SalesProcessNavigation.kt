@@ -4,11 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -33,14 +29,13 @@ import androidx.navigation.compose.rememberNavController
 import com.soleel.paymentapp.core.component.SalesSummaryHeader
 import com.soleel.paymentapp.core.model.Sale
 import com.soleel.paymentapp.core.model.enums.PaymentMethodEnum
-import com.soleel.paymentapp.core.model.outcomeprocess.RegisterSaleResult
-import com.soleel.paymentapp.core.model.paymentprocess.PaymentResult
+import com.soleel.paymentapp.core.model.intentsale.IntentSaleStatusEnum
 import com.soleel.paymentapp.core.navigation.createNavType
 import com.soleel.paymentapp.core.ui.utils.LongDevicePreview
 import com.soleel.paymentapp.core.ui.utils.WithFakeSystemBars
 import com.soleel.paymentapp.core.ui.utils.WithFakeTopAppBar
-import com.soleel.paymentapp.feature.salesprocess.outcome.FailedSaleScreen
-import com.soleel.paymentapp.feature.salesprocess.outcome.PendingSaleScreen
+import com.soleel.paymentapp.feature.salesprocess.outcome.failedsale.FailedSaleScreen
+import com.soleel.paymentapp.feature.salesprocess.outcome.pendingsale.PendingSaleScreen
 import com.soleel.paymentapp.feature.salesprocess.outcome.registersale.RegisterSaleScreen
 import com.soleel.paymentapp.feature.salesprocess.outcome.successfulsale.SuccessfulSaleScreen
 import com.soleel.paymentapp.feature.salesprocess.payment.contactlessreading.ContactlessReadingScreen
@@ -52,7 +47,6 @@ import com.soleel.paymentapp.feature.salesprocess.setup.cashchangecalculator.Cas
 import com.soleel.paymentapp.feature.salesprocess.setup.creditinstalmentsselection.CreditInstalmentsSelectionScreen
 import com.soleel.paymentapp.feature.salesprocess.setup.debitchangeselection.DebitChangeSelectionScreen
 import com.soleel.paymentapp.feature.salesprocess.setup.paymentypeselection.PaymentTypeSelectionScreen
-import com.soleel.paymentapp.feature.salesprocess.utils.toSale
 import kotlinx.serialization.Serializable
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
@@ -74,7 +68,8 @@ private fun SalesProcessScreenLongPreview() {
                             savedStateHandle = fakeSavedStateHandle
                         ),
                         saleToNavType = mapOf(typeOf<Sale>() to createNavType<Sale>()),
-                        finalizeSale = {}
+                        finalizeSale = {},
+                        finishWithResult = null
                     )
                 }
             )
@@ -93,13 +88,15 @@ data class SalesProcessGraph(
 
 fun NavGraphBuilder.salesProcessGraph(
     saleToNavType: Map<KType, NavType<Sale>>,
-    finalizeSale: () -> Unit
+    finalizeSale: () -> Unit,
+    finishWithResult: ((saleId: String?, status: IntentSaleStatusEnum, message: String?, errorCode: String?) -> Unit)?
 ) {
     composable<SalesProcessGraph>(
         content = {
             SalesProcessScreen(
                 saleToNavType = saleToNavType,
-                finalizeSale = finalizeSale
+                finalizeSale = finalizeSale,
+                finishWithResult = finishWithResult
             )
         }
     )
@@ -139,22 +136,14 @@ object FailedPayment
 object RegisterSale
 
 @Serializable
-object SuccessfulSale
+object FailedSale
 
 @Serializable
 object PendingSale
 
-@Serializable
-object FailedSale
 
 @Serializable
-object PrintVoucher // README: Puede ser un modal
-
-@Serializable
-object SendVoucherToEmail // README: Puede ser un modal
-
-@Serializable
-object QRDownloadVoucher // README: Puede ser un modal
+object SuccessfulSale
 
 fun getStartDestination(salesProcessUiModel: SalesProcessUiModel): Any {
     if (salesProcessUiModel.paymentMethodSelected == null) {
@@ -191,50 +180,78 @@ fun SalesProcessScreen(
     navHostController: NavHostController = rememberNavController(),
     salesProcessViewModel: SalesProcessViewModel = hiltViewModel(),
     saleToNavType: Map<KType, NavType<Sale>>,
-    finalizeSale: () -> Unit
+    finalizeSale: () -> Unit,
+    finishWithResult: ((saleId: String?, status: IntentSaleStatusEnum, message: String?, errorCode: String?) -> Unit)?
 ) {
+    val salesProcessUiModel: SalesProcessUiModel = salesProcessViewModel.salesProcessUiModel
+
+    val startDestination = remember(calculation = { getStartDestination(salesProcessUiModel) })
     val currentDestination: NavDestination? = navHostController.currentBackStackEntryAsState()
         .value?.destination
-    val isAtStartDestination: Boolean =
-        currentDestination?.hasRoute(PaymentTypeSelection::class) == true
-
-    val salesProcessUiModel: SalesProcessUiModel = salesProcessViewModel.salesProcessUiModel
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { }, // README: Si se borra el content no es detectado
                 modifier = Modifier.background(Color.DarkGray),
-                navigationIcon = {
-                    IconButton(
-                        onClick = {
-                            if (isAtStartDestination) {
-                                finalizeSale()
-                            } else {
-                                navHostController.popBackStack()
-                            }
-                        },
-                        content = {
-                            Icon(
-                                imageVector = Icons.Filled.ArrowBack,
-                                contentDescription = "back"
-                            )
-                        }
-                    )
-                },
                 actions = {
-                    Surface(
-                        modifier = Modifier.padding(16.dp, 2.dp),
-                        onClick = {
-                            finalizeSale()
-                        },
-                        content = {
-                            Text(
-                                text = "Cancelar",
-                                style = MaterialTheme.typography.titleMedium,
-                            )
-                        }
-                    )
+                    if (currentDestination?.hasRoute(ProcessPayment::class) == true ||
+                        currentDestination?.hasRoute(RegisterSale::class) == true
+                    ) {
+                        // No mostrar acción
+                    } else if (currentDestination?.hasRoute(SuccessfulSale::class) == true ||
+                        currentDestination?.hasRoute(PendingSale::class) == true
+                    ) {
+                        Surface(
+                            modifier = Modifier.padding(16.dp, 2.dp),
+                            onClick = {
+                                val message: String =
+                                    if (currentDestination == PendingSale::class) {
+                                        "Pago finalizado correntacmente, pero Venta pendiende te registro"
+                                    } else {
+                                        "Venta finalizada correctamente"
+                                    }
+                                finishWithResult?.invoke(
+                                    salesProcessUiModel.uuidSale,
+                                    IntentSaleStatusEnum.SUCCESS,
+                                    message,
+                                    null
+                                )
+                                finalizeSale()
+                            },
+                            content = {
+                                Text(
+                                    text = "Cerrar",
+                                    style = MaterialTheme.typography.titleMedium,
+                                )
+                            }
+                        )
+                    } else {
+                        Surface(
+                            modifier = Modifier.padding(16.dp, 2.dp),
+                            onClick = {
+                                val status: IntentSaleStatusEnum =
+                                    if (salesProcessUiModel.errorCode != null) {
+                                        IntentSaleStatusEnum.ERROR
+                                    } else {
+                                        IntentSaleStatusEnum.CANCELLED
+                                    }
+                                finishWithResult?.invoke(
+                                    salesProcessUiModel.uuidSale,
+                                    status,
+                                    salesProcessUiModel.errorMessage,
+                                    salesProcessUiModel.errorCode
+                                )
+                                finalizeSale()
+                            },
+                            content = {
+                                Text(
+                                    text = "Cancelar",
+                                    style = MaterialTheme.typography.titleMedium,
+                                )
+                            }
+                        )
+                    }
                 }
             )
         },
@@ -254,10 +271,6 @@ fun SalesProcessScreen(
                         debitChangeSelected = salesProcessUiModel.debitChangeSelected
                     )
 
-                    val startDestination = remember(
-                        calculation = { getStartDestination(salesProcessUiModel) }
-                    )
-
                     NavHost(
                         navController = navHostController,
                         startDestination = startDestination,
@@ -273,8 +286,7 @@ fun SalesProcessScreen(
 //                                            salesProcessViewModel.onSalesProcessUiEvent(
 //                                                SalesProcessUiEvent.TipSelected(it)
 //                                            )
-//                                            val sale: Sale = salesProcessViewModel.salesProcessUiModel.toSale()
-//                                            navHostController.navigate(PaymentTypeSelection(sale))
+//                                            navHostController.navigate(PaymentTypeSelection)
 //                                        }
 //                                    )
 //                                }
@@ -325,7 +337,6 @@ fun SalesProcessScreen(
                                             salesProcessViewModel.onSalesProcessUiEvent(
                                                 SalesProcessUiEvent.CashChangeSelected(it)
                                             )
-                                            salesProcessViewModel.salesProcessUiModel.toSale()
                                             navHostController.navigate(
                                                 route = RegisterSale,
                                                 builder = {
@@ -354,8 +365,6 @@ fun SalesProcessScreen(
                                             salesProcessViewModel.onSalesProcessUiEvent(
                                                 SalesProcessUiEvent.CreditInstalmentsSelected(it)
                                             )
-                                            salesProcessViewModel.salesProcessUiModel
-                                                .toSale()
                                             navHostController.navigate(
                                                 route = ContactlessReading,
                                                 builder = {
@@ -384,7 +393,6 @@ fun SalesProcessScreen(
                                             salesProcessViewModel.onSalesProcessUiEvent(
                                                 SalesProcessUiEvent.DebitChangeSelected(it)
                                             )
-                                            salesProcessViewModel.salesProcessUiModel.toSale()
                                             navHostController.navigate(
                                                 route = ContactlessReading,
                                                 builder = {
@@ -418,7 +426,13 @@ fun SalesProcessScreen(
                                                 }
                                             )
                                         },
-                                        navigateToVerificationMethod = {
+                                        navigateToVerificationMethod = { brand: String, last4: Int ->
+                                            salesProcessViewModel.onSalesProcessUiEvent(
+                                                SalesProcessUiEvent.CardBrandDetected(brand)
+                                            )
+                                            salesProcessViewModel.onSalesProcessUiEvent(
+                                                SalesProcessUiEvent.Last4Obtained(last4)
+                                            )
                                             navHostController.navigate(
                                                 route = Pinpad,
                                                 builder = {
@@ -429,7 +443,14 @@ fun SalesProcessScreen(
                                                 }
                                             )
                                         },
-                                        navigateToFailedPayment = {
+                                        navigateToFailedPayment = { errorCode: String, errorMessage: String ->
+                                            salesProcessViewModel.onSalesProcessUiEvent(
+                                                SalesProcessUiEvent.ReadingErrorCode(errorCode)
+                                            )
+                                            salesProcessViewModel.onSalesProcessUiEvent(
+                                                SalesProcessUiEvent.ReadingErrorMessage(errorMessage)
+                                            )
+
                                             navHostController.navigate(
                                                 route = FailedPayment,
                                                 builder = {
@@ -447,7 +468,14 @@ fun SalesProcessScreen(
                             composable<ContactReading>(
                                 content = {
                                     ContactReadingScreen(
-                                        navigateToVerificationMethod = {
+                                        navigateToVerificationMethod = { brand: String, last4: Int ->
+                                            salesProcessViewModel.onSalesProcessUiEvent(
+                                                SalesProcessUiEvent.CardBrandDetected(brand)
+                                            )
+                                            salesProcessViewModel.onSalesProcessUiEvent(
+                                                SalesProcessUiEvent.Last4Obtained(last4)
+                                            )
+
                                             navHostController.navigate(
                                                 route = Pinpad,
                                                 builder = {
@@ -458,7 +486,14 @@ fun SalesProcessScreen(
                                                 }
                                             )
                                         },
-                                        navigateToFailedPayment = {
+                                        navigateToFailedPayment = { errorCode: String, errorMessage: String ->
+                                            salesProcessViewModel.onSalesProcessUiEvent(
+                                                SalesProcessUiEvent.ReadingErrorCode(errorCode)
+                                            )
+                                            salesProcessViewModel.onSalesProcessUiEvent(
+                                                SalesProcessUiEvent.ReadingErrorMessage(errorMessage)
+                                            )
+
                                             navHostController.navigate(
                                                 route = FailedPayment,
                                                 builder = {
@@ -468,7 +503,7 @@ fun SalesProcessScreen(
                                                     launchSingleTop = true
                                                 }
                                             )
-                                        },
+                                        }
                                     )
                                 }
                             )
@@ -477,7 +512,14 @@ fun SalesProcessScreen(
                                 content = {
                                     PinpadScreen(
                                         onCancel = finalizeSale,
-                                        navigateToFailedPayment = {
+                                        navigateToFailedPayment = { errorCode: String, errorMessage: String ->
+                                            salesProcessViewModel.onSalesProcessUiEvent(
+                                                SalesProcessUiEvent.ReadingErrorCode(errorCode)
+                                            )
+                                            salesProcessViewModel.onSalesProcessUiEvent(
+                                                SalesProcessUiEvent.ReadingErrorMessage(errorMessage)
+                                            )
+
                                             navHostController.navigate(
                                                 route = FailedPayment,
                                                 builder = {
@@ -488,7 +530,14 @@ fun SalesProcessScreen(
                                                 }
                                             )
                                         },
-                                        navigateToProcessPayment = {
+                                        navigateToProcessPayment = { pinBlock: String, ksn: String ->
+                                            salesProcessViewModel.onSalesProcessUiEvent(
+                                                SalesProcessUiEvent.SavePinBlock(pinBlock)
+                                            )
+                                            salesProcessViewModel.onSalesProcessUiEvent(
+                                                SalesProcessUiEvent.SaveKSN(ksn)
+                                            )
+
                                             navHostController.navigate(
                                                 route = ProcessPayment,
                                                 builder = {
@@ -506,7 +555,14 @@ fun SalesProcessScreen(
                             composable<ProcessPayment>(
                                 content = {
                                     ProcessPaymentScreen(
-                                        navigateToFailedPayment = {
+                                        navigateToFailedPayment = { errorCode: String, errorMessage: String ->
+                                            salesProcessViewModel.onSalesProcessUiEvent(
+                                                SalesProcessUiEvent.ReadingErrorCode(errorCode)
+                                            )
+                                            salesProcessViewModel.onSalesProcessUiEvent(
+                                                SalesProcessUiEvent.ReadingErrorMessage(errorMessage)
+                                            )
+
                                             navHostController.navigate(
                                                 route = FailedPayment,
                                                 builder = {
@@ -517,7 +573,13 @@ fun SalesProcessScreen(
                                                 }
                                             )
                                         },
-                                        navigateToRegisterSale = { sale: Sale, paymentResult: PaymentResult ->
+                                        navigateToRegisterSale = { sequenceNumber: String ->
+                                            salesProcessViewModel.onSalesProcessUiEvent(
+                                                SalesProcessUiEvent.SaveSequenceNumber(
+                                                    sequenceNumber
+                                                )
+                                            )
+
                                             navHostController.navigate(
                                                 route = RegisterSale,
                                                 builder = {
@@ -557,6 +619,27 @@ fun SalesProcessScreen(
                                             salesProcessViewModel.onSalesProcessUiEvent(
                                                 SalesProcessUiEvent.DebitChangeSelected(null)
                                             )
+                                            salesProcessViewModel.onSalesProcessUiEvent(
+                                                SalesProcessUiEvent.CardBrandDetected(null)
+                                            )
+                                            salesProcessViewModel.onSalesProcessUiEvent(
+                                                SalesProcessUiEvent.Last4Obtained(null)
+                                            )
+                                            salesProcessViewModel.onSalesProcessUiEvent(
+                                                SalesProcessUiEvent.ReadingErrorCode(null)
+                                            )
+                                            salesProcessViewModel.onSalesProcessUiEvent(
+                                                SalesProcessUiEvent.ReadingErrorMessage(null)
+                                            )
+                                            salesProcessViewModel.onSalesProcessUiEvent(
+                                                SalesProcessUiEvent.SavePinBlock(null)
+                                            )
+                                            salesProcessViewModel.onSalesProcessUiEvent(
+                                                SalesProcessUiEvent.SaveKSN(null)
+                                            )
+                                            salesProcessViewModel.onSalesProcessUiEvent(
+                                                SalesProcessUiEvent.SaveSequenceNumber(null)
+                                            )
 
                                             navHostController.navigate(
                                                 route = PaymentTypeSelection,
@@ -578,29 +661,14 @@ fun SalesProcessScreen(
                                 typeMap = saleToNavType,
                                 content = {
                                     RegisterSaleScreen(
-                                        whenRegisterSaleIsSuccessful = { registerSaleResult: RegisterSaleResult ->
-                                            navHostController.navigate(
-                                                route = SuccessfulSale,
-                                                builder = {
-                                                    popUpTo(0) {
-                                                        inclusive = true
-                                                    }
-                                                    launchSingleTop = true
-                                                }
+                                        navigateToFailedSale = { errorCode: String, errorMessage: String ->
+                                            salesProcessViewModel.onSalesProcessUiEvent(
+                                                SalesProcessUiEvent.ReadingErrorCode(errorCode)
                                             )
-                                        },
-                                        whenRegisterSaleIsPending = { registerSaleResult: RegisterSaleResult ->
-                                            navHostController.navigate(
-                                                route = PendingSale,
-                                                builder = {
-                                                    popUpTo(0) {
-                                                        inclusive = true
-                                                    }
-                                                    launchSingleTop = true
-                                                }
+                                            salesProcessViewModel.onSalesProcessUiEvent(
+                                                SalesProcessUiEvent.ReadingErrorMessage(errorMessage)
                                             )
-                                        },
-                                        whenRegisterSaleIsFailed = { registerSaleResult: RegisterSaleResult ->
+
                                             navHostController.navigate(
                                                 route = FailedSale,
                                                 builder = {
@@ -611,6 +679,85 @@ fun SalesProcessScreen(
                                                 }
                                             )
                                         },
+
+                                        navigateToPendingSale = { uuidSale: String ->
+                                            salesProcessViewModel.onSalesProcessUiEvent(
+                                                SalesProcessUiEvent.UUIDSale(uuidSale)
+                                            )
+
+                                            navHostController.navigate(
+                                                route = PendingSale,
+                                                builder = {
+                                                    popUpTo(0) {
+                                                        inclusive = true
+                                                    }
+                                                    launchSingleTop = true
+                                                }
+                                            )
+                                        },
+
+                                        navigateToSuccessfulSale = { uuidSale: String ->
+                                            salesProcessViewModel.onSalesProcessUiEvent(
+                                                SalesProcessUiEvent.UUIDSale(uuidSale)
+                                            )
+
+                                            navHostController.navigate(
+                                                route = SuccessfulSale,
+                                                builder = {
+                                                    popUpTo(0) {
+                                                        inclusive = true
+                                                    }
+                                                    launchSingleTop = true
+                                                }
+                                            )
+                                        },
+                                    )
+                                }
+                            )
+
+                            composable<FailedSale>(
+                                content = {
+                                    FailedSaleScreen(
+                                        errorCode = salesProcessViewModel.salesProcessUiModel.errorCode,
+                                        errorMessage = salesProcessViewModel.salesProcessUiModel.errorMessage,
+                                        navigateToRegisterSale = {
+                                            navHostController.navigate(
+                                                route = RegisterSale,
+                                                builder = {
+                                                    popUpTo(0) {
+                                                        inclusive = true
+                                                    }
+                                                    launchSingleTop = true
+                                                }
+                                            )
+                                        }
+                                    )
+                                }
+                            )
+
+                            composable<PendingSale>(
+                                content = {
+                                    PendingSaleScreen(
+                                        finalizeSale = {
+                                            finishWithResult?.invoke(
+                                                salesProcessUiModel.uuidSale,
+                                                IntentSaleStatusEnum.SUCCESS,
+                                                "Pago exitoso, pero la Venta esta pendiente de registro",
+                                                salesProcessUiModel.errorCode
+                                            )
+                                            finalizeSale()
+                                        },
+                                        navigateToRegisterSale = {
+                                            navHostController.navigate(
+                                                route = RegisterSale,
+                                                builder = {
+                                                    popUpTo(0) {
+                                                        inclusive = true
+                                                    }
+                                                    launchSingleTop = true
+                                                }
+                                            )
+                                        }
                                     )
                                 }
                             )
@@ -618,20 +765,16 @@ fun SalesProcessScreen(
                             composable<SuccessfulSale>(
                                 content = {
                                     SuccessfulSaleScreen(
-                                        finalizeSale = finalizeSale
+                                        finalizeSale = {
+                                            finishWithResult?.invoke(
+                                                salesProcessUiModel.uuidSale,
+                                                IntentSaleStatusEnum.SUCCESS,
+                                                salesProcessUiModel.errorMessage,
+                                                salesProcessUiModel.errorCode
+                                            )
+                                            finalizeSale()
+                                        }
                                     )
-                                }
-                            )
-
-                            composable<PendingSale>(
-                                content = {
-                                    PendingSaleScreen()
-                                }
-                            )
-
-                            composable<FailedSale>(
-                                content = {
-                                    FailedSaleScreen()
                                 }
                             )
                         }

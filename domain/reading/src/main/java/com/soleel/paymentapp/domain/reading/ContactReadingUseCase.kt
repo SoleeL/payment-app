@@ -30,6 +30,7 @@ class ContactReadingUseCaseMock @Inject constructor() : IContactReadingUseCase {
         emit(
             InterfaceReadData(
                 cardNumber = "1234 5678 9012 3456",
+                cardBrand = "VISA DEBIT",
                 cardHolderName = "Juan Pérez",
                 expirationDate = "12/25",
                 isValid = true,

@@ -35,15 +35,15 @@ class ContactlessReadingUseCaseMock @Inject constructor(
 
         val fallbackEnabled = developerPreferences.isEnabled(DeveloperPreferenceEnum.CONTACTLESS_READER_FALLBACK)
         val invalidCardEnabled = developerPreferences.isEnabled(DeveloperPreferenceEnum.CONTACTLESS_READER_INVALID_CARD)
-        val genericErrorEnabled = developerPreferences.isEnabled(DeveloperPreferenceEnum.CONTACTLESS_READER_OTHER_ERROR)
 
         when {
             fallbackEnabled -> throw InterfaceFallbackException()
             invalidCardEnabled -> throw InvalidCardException()
-            genericErrorEnabled -> throw PaymentRejectedException()
+
             else -> emit(
                 InterfaceReadData(
                     cardNumber = "1234 5678 9012 3456",
+                    cardBrand = "VISA DEBIT",
                     cardHolderName = "Juan Pérez",
                     expirationDate = "12/25",
                     isValid = true,
@@ -59,4 +59,3 @@ class ContactlessReadingUseCaseMock @Inject constructor(
 
 class InterfaceFallbackException(message: String = "EMVCo fallback: cambiar a otra interfaz") : Exception(message)
 class InvalidCardException(message: String = "EMVCo: tarjeta invalida") : Exception(message)
-class PaymentRejectedException(message: String = "Adquire: pago rechazado") : Exception(message)

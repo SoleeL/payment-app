@@ -18,8 +18,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.soleel.paymentapp.core.model.Sale
-import com.soleel.paymentapp.core.model.paymentprocess.PaymentResult
 import com.soleel.paymentapp.core.ui.utils.LongDevicePreview
 import com.soleel.paymentapp.core.ui.utils.WithFakeSystemBars
 import com.soleel.paymentapp.core.ui.utils.WithFakeTopAppBar
@@ -34,8 +32,8 @@ private fun ProcessPaymentScreenLongPreview() {
             WithFakeTopAppBar(
                 content = {
                     ProcessPaymentScreen(
-                        navigateToFailedPayment = { },
-                        navigateToRegisterSale = { _, _ -> },
+                        navigateToFailedPayment = { _, _ -> },
+                        navigateToRegisterSale = { _ -> },
                     )
                 }
             )
@@ -46,13 +44,13 @@ private fun ProcessPaymentScreenLongPreview() {
 @Composable
 fun ProcessPaymentScreen(
     registerPaymentViewModel: RegisterPaymentViewModel = hiltViewModel(),
-    navigateToFailedPayment: () -> Unit,
-    navigateToRegisterSale: (sale: Sale, paymentResult: PaymentResult) -> Unit
+    navigateToFailedPayment: (errorCode: String, errorMessage: String) -> Unit,
+    navigateToRegisterSale: (sequenceNumber: String) -> Unit
 ) {
     BackHandler(enabled = true, onBack = { })
 
     LaunchedEffect(Unit) {
-        registerPaymentViewModel.startPaymentProcess(navigateToRegisterSale)
+        registerPaymentViewModel.startPaymentProcess(navigateToFailedPayment, navigateToRegisterSale)
     }
 
     val paymentStep: PaymentStepUiState by registerPaymentViewModel.paymentStepUiState.collectAsStateWithLifecycle()

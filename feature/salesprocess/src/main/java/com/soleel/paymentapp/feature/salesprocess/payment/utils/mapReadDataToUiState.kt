@@ -9,7 +9,7 @@ fun mapReadDataToUiState(result: Result<InterfaceReadData>): ReadingUiState {
         is Result.Success -> {
             val data = result.data
             if (data.isValid) {
-                ReadingUiState.Success
+                ReadingUiState.Success(data)
             } else {
                 ReadingUiState.Failure(
                     errorCode = "INVALID_DATA",

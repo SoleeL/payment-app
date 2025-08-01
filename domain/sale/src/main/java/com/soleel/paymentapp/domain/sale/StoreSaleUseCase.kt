@@ -1,7 +1,9 @@
 package com.soleel.paymentapp.domain.sale
 
 import com.soleel.paymentapp.core.model.Sale
+import com.soleel.paymentapp.core.model.enums.DeveloperPreferenceEnum
 import com.soleel.paymentapp.core.model.outcomeprocess.StoreSaleProcessData
+import com.soleel.paymentapp.data.preferences.developer.IDeveloperPreferences
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -32,15 +34,28 @@ fun interface IStoreSaleUseCase {
 //    override operator fun invoke(): Flow<StoreSaleProcessData> = ...
 //}
 
-class StoreSaleUseCaseMock @Inject constructor() : IStoreSaleUseCase {
+class StoreSaleUseCaseMock @Inject constructor(
+    private val developerPreferences: IDeveloperPreferences
+) : IStoreSaleUseCase {
     override fun invoke(): Flow<StoreSaleProcessData> = flow {
         delay(2000)
-        emit(
-            StoreSaleProcessData(
-                localSaleId = UUID.randomUUID(),
-                sale = Sale(totalAmount = 7000),
-                timestamp = System.currentTimeMillis()
-            )
+
+        val saleSaveFailByLocalErrorEnabled = developerPreferences.isEnabled(
+            DeveloperPreferenceEnum.SALE_SAVE_FAIL_BY_LOCAL_ERROR
         )
+        when {
+            saleSaveFailByLocalErrorEnabled -> throw SaleSaveLocalErrorException()
+            else -> {
+                emit(
+                    StoreSaleProcessData(
+                        saleUUID = UUID.randomUUID(),
+                        sale = Sale(totalAmount = 7000),
+                        timestamp = System.currentTimeMillis()
+                    )
+                )
+            }
+        }
     }
 }
+
+class SaleSaveLocalErrorException(message: String = "Terminal: venta no almacenada") : Exception(message)

@@ -23,6 +23,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.soleel.paymentapp.core.model.Sale
+import com.soleel.paymentapp.core.model.intentsale.IntentSaleStatusEnum
 import com.soleel.paymentapp.core.navigation.createNavType
 import com.soleel.paymentapp.feature.home.HomeGraph
 import com.soleel.paymentapp.feature.home.homeNavigationGraph
@@ -39,7 +40,8 @@ object Error
 
 @Composable
 fun PaymentAppNavigationGraph(
-    startDestination: Any
+    startDestination: Any,
+    finishWithResult: ((saleId: String?, status: IntentSaleStatusEnum, message: String?, errorCode: String?) -> Unit)? = null
 ) {
     val navHostController: NavHostController = rememberNavController()
 
@@ -70,7 +72,8 @@ fun PaymentAppNavigationGraph(
                 finalizeSale = {
                     navHostController.popBackStack(HomeGraph, inclusive = true)
                     navHostController.navigate(HomeGraph)
-                }
+                },
+                finishWithResult = finishWithResult
             )
         }
     )

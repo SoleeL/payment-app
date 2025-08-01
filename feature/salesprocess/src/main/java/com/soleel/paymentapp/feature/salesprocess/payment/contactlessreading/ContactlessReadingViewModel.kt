@@ -4,7 +4,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.soleel.paymentapp.core.common.result.asResult
-import com.soleel.paymentapp.core.model.paymentprocess.PaymentResult
 import com.soleel.paymentapp.domain.reading.IContactlessReadingUseCase
 import com.soleel.paymentapp.feature.salesprocess.payment.utils.ReadingErrorType
 import com.soleel.paymentapp.feature.salesprocess.payment.utils.ReadingStepUiState
@@ -35,9 +34,6 @@ open class ContactlessReadingViewModel @Inject constructor(
         .asResult()
         .map(transform = { mapReadDataToUiState(it) })
 
-    private val _contactlessReadingStepUiState: MutableStateFlow<ReadingStepUiState> =
-        MutableStateFlow<ReadingStepUiState>(ReadingStepUiState.Active)
-
     val contactlessReadingUiState: StateFlow<ReadingUiState> = _contactlessReadingUiState
         .stateIn(
             scope = viewModelScope,
@@ -45,10 +41,13 @@ open class ContactlessReadingViewModel @Inject constructor(
             initialValue = ReadingUiState.Reading
         )
 
+    private val _contactlessReadingStepUiState: MutableStateFlow<ReadingStepUiState> =
+        MutableStateFlow<ReadingStepUiState>(ReadingStepUiState.Active)
+
     fun startContactlessReading(
         withOtherReadingInterface: () -> Unit,
-        onVerificationMethod: () -> Unit,
-        onFailedPayment: (paymentResult: PaymentResult) -> Unit
+        onFailedPayment: (errorCode: String, errorMessage: String) -> Unit,
+        onVerificationMethod: (brand: String, last4: Int) -> Unit
     ) {
         viewModelScope.launch {
             _contactlessReadingStepUiState.value = ReadingStepUiState.Active
@@ -72,22 +71,16 @@ open class ContactlessReadingViewModel @Inject constructor(
 
                     ReadingErrorType.InvalidCard -> {
                         onFailedPayment(
-                            PaymentResult(
-                                isSuccess = false,
-                                message = failure.errorMessage,
-                                failedStep = "READING"
-                            )
+                            failure.errorCode ?: "UNKNOWN CODE",
+                            failure.errorMessage ?: "Error desconocido"
                         )
                     }
 
                     ReadingErrorType.PaymentRejected,
                     is ReadingErrorType.Other, null -> {
                         onFailedPayment(
-                            PaymentResult(
-                                isSuccess = false,
-                                message = failure?.errorMessage ?: "Error desconocido",
-                                failedStep = "READING"
-                            )
+                            failure?.errorCode ?: "UNKNOWN CODE",
+                            failure?.errorMessage ?: "Error desconocido"
                         )
                     }
                 }
@@ -99,7 +92,10 @@ open class ContactlessReadingViewModel @Inject constructor(
 
             delay(1000)
 
-            onVerificationMethod()
+            onVerificationMethod(
+                contactlessReadingResult.data.cardBrand,
+                contactlessReadingResult.data.cardNumber.takeLast(4).toInt()
+            )
         }
     }
 }

@@ -29,15 +29,21 @@ enum class SalesResultOptionEnum(
         "Genera un código QR y permite que el cliente lo escanee",
         isVoucher = true
     ),
+    RETRY_STORE_SALE(
+        R.drawable.ic_sale_retry,
+        "Reintentar almacenar y registrar venta",
+        highlight = true,
+        isRetry = true
+    ),
+    RETRY_REGISTER_SALE(
+        R.drawable.ic_sale_retry,
+        "Reintentar registrar venta",
+        highlight = true,
+        isRetry = true
+    ),
     FINISH_SALE(
         R.drawable.ic_sale_finished,
         "Finalizar venta",
         highlight = true
-    ),
-    RETRY_SALE(
-        R.drawable.ic_sale_retry,
-        "Reintentar venta",
-        highlight = true,
-        isRetry = true
     )
 }

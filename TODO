@@ -3,7 +3,7 @@
 ## Prioridad
 - [X] Limpiar calculadora al finalizar una venta
 - [X] Implementar flujo de entrada de Intent
-- [ ] Implementar flujo de salida de Intent
+- [X] Implementar flujo de salida de Intent
 
 ## Alta
 - [X] PaymentTypeSelection: Implementar vista y logica
@@ -17,8 +17,8 @@
 
 - [X] RegisterSale: Implementar vista y logica
 - [X] SuccessfulSale: Implementar vista y logica
-- [ ] PendingSale: Implementar vista y logica
-- [ ] FailedSale: Implementar vista y logica
+- [X] PendingSale: Implementar vista y logica
+- [X] FailedSale: Implementar vista y logica
 
 - [X] ContactlessReading: Eliminar stack al navegar a ella
 - [X] ContactlessReading: bloquear navegacion de BackButton
@@ -34,7 +34,7 @@
 
 - [X] FailedPayment: Eliminar stack al navegar a ella
 - [ ] FailedPayment: Al presionar BackButton presentar Modal de cancelacion
-- [ ] FailedPayment: No se ve el texto del mensaje del error cuando el thema es el claro
+- [ ] FailedPayment: No se ve el texto del mensaje del error cuando el tema es el claro
 
 - [X] RegisterSale: Eliminar stack al navegar a ella
 - [X] RegisterSale: bloquear navegacion de BackButton
@@ -44,21 +44,21 @@
 
 - [X] PendingSale: Eliminar stack al navegar a ella
 - [ ] PendingSale: mostrar modal de que la venta esta pendiente de registro
-- [ ] PendingSale: botonera con opciones de impresion y reintentar registro (si no se pudo registrar venta, las opciones de corre y qr no tienen sentido)
+- [X] PendingSale: reintentar registro y finalizar venta
 
 - [X] FailedSale: Eliminar stack al navegar a ella
 - [ ] FailedSale: Al presionar BackButton presentar Modal de cancelacion
 
-- [ ] salesProcessGraph: Implementar logica de navigacion al cancelar (Modal de cancelacion)
-- [ ] SalesProcessScreen - TopAppBar: Condicionar aparecion de los botones de retroceso y cancelar
+- [X] salesProcessGraph: Implementar logica de navigacion al cancelar (Modal de cancelacion)
+- [x] SalesProcessScreen - TopAppBar: Condicionar aparecion del boton cancelar
 
 ## Media
 - [ ] CashChangeCalculator: Implementar vista y logica
 
 - [ ] ViewModel: Eliminar valores al retroceder en el Setup
-    - [ ] CashChangeCalculator
-    - [ ] CreditInstallmentsSelection
-    - [ ] DebitChangeSelection
+    - [x] CashChangeCalculator
+    - [x] CreditInstallmentsSelection
+    - [x] DebitChangeSelection
     
 ## Baja
 - [ ] TipSelection: Pendiente de implementacion

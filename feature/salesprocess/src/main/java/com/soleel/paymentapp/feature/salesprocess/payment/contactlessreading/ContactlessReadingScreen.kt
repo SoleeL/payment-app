@@ -28,7 +28,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.soleel.paymentapp.core.component.SalesSummaryHeader
 import com.soleel.paymentapp.core.model.paymentprocess.PaymentResult
 import com.soleel.paymentapp.core.ui.R
 import com.soleel.paymentapp.core.ui.utils.LongDevicePreview
@@ -48,8 +47,8 @@ private fun ContactlessReadingScreenLongPreview() {
                 content = {
                     ContactlessReadingScreen(
                         navigateToContactReading = {},
-                        navigateToVerificationMethod = {},
-                        navigateToFailedPayment = {}
+                        navigateToVerificationMethod = { _, _ -> },
+                        navigateToFailedPayment = { _, _ -> }
                     )
                 }
             )
@@ -61,8 +60,8 @@ private fun ContactlessReadingScreenLongPreview() {
 fun ContactlessReadingScreen(
     contactlessReadingViewModel: ContactlessReadingViewModel = hiltViewModel(),
     navigateToContactReading: () -> Unit,
-    navigateToVerificationMethod: () -> Unit,
-    navigateToFailedPayment: (paymentResult: PaymentResult) -> Unit
+    navigateToFailedPayment: (errorCode: String, errorMessage: String) -> Unit,
+    navigateToVerificationMethod: (brand: String, last4: Int) -> Unit
 ) {
     BackHandler(enabled = true, onBack = { })
 
@@ -82,7 +81,7 @@ fun ContactlessReadingScreen(
         content = {
             when (contactlessReadingUiState) {
                 ReadingUiState.Reading -> ContactlessReadingPrompt()
-                ReadingUiState.Success -> SuccessPrompt()
+                is ReadingUiState.Success -> SuccessPrompt()
                 is ReadingUiState.Failure -> FailurePrompt()
             }
         }

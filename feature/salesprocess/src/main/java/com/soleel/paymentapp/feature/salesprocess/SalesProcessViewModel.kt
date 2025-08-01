@@ -16,11 +16,24 @@ data class SalesProcessUiModel(
     val paymentMethodSelected: PaymentMethodEnum? = null,
     val cashChangeSelected: Int? = null,
     val creditInstalmentsSelected: Int? = null,
-    val debitChangeSelected: Int? = null
+    val debitChangeSelected: Int? = null,
+
+    val cardBrandDetected: String? = null,
+    val last4Obtained: Int? = null,
+
+    val errorCode: String? = null,
+    val errorMessage: String? = null,
+
+    val pinBlock: String? = null,
+    val ksn: String? = null,
+
+    val sequenceNumber: String? = null,
+
+    val uuidSale: String? = null
 )
 
 sealed class SalesProcessUiEvent {
-//    data class TipSelected(val tipTotal: Int?) : SalesProcessUiEvent()
+    //    data class TipSelected(val tipTotal: Int?) : SalesProcessUiEvent()
     data class PaymentMethodSelected(val paymentMethodSelected: PaymentMethodEnum?) :
         SalesProcessUiEvent()
 
@@ -30,14 +43,18 @@ sealed class SalesProcessUiEvent {
 
     data class DebitChangeSelected(val debitChangeSelected: Int?) : SalesProcessUiEvent()
 
-    // TODO:
+    data class CardBrandDetected(val brand: String?) : SalesProcessUiEvent()
+    data class Last4Obtained(val last4: Int?) : SalesProcessUiEvent()
 
-    // last 4
-    // marca
+    data class ReadingErrorCode(val errorCode: String?) : SalesProcessUiEvent()
+    data class ReadingErrorMessage(val errorMessage: String?) : SalesProcessUiEvent()
 
-    // sequence number de pago
+    data class SavePinBlock(val pinBlock: String?) : SalesProcessUiEvent()
+    data class SaveKSN(val ksn: String?) : SalesProcessUiEvent()
 
-    // uuid de la venta
+    data class SaveSequenceNumber(val  sequenceNumber: String?) : SalesProcessUiEvent()
+
+    data class UUIDSale(val uuidSale: String?) : SalesProcessUiEvent()
 }
 
 @HiltViewModel
@@ -92,6 +109,54 @@ open class SalesProcessViewModel @Inject constructor(
             is SalesProcessUiEvent.DebitChangeSelected -> {
                 _salesProcessUiModel = salesProcessUiModel.copy(
                     debitChangeSelected = event.debitChangeSelected
+                )
+            }
+
+            is SalesProcessUiEvent.CardBrandDetected -> {
+                _salesProcessUiModel = salesProcessUiModel.copy(
+                    cardBrandDetected = event.brand
+                )
+            }
+
+            is SalesProcessUiEvent.Last4Obtained -> {
+                _salesProcessUiModel = salesProcessUiModel.copy(
+                    last4Obtained = event.last4
+                )
+            }
+
+            is SalesProcessUiEvent.ReadingErrorCode -> {
+                _salesProcessUiModel = salesProcessUiModel.copy(
+                    errorCode = event.errorCode
+                )
+            }
+
+            is SalesProcessUiEvent.ReadingErrorMessage -> {
+                _salesProcessUiModel = salesProcessUiModel.copy(
+                    errorMessage = event.errorMessage
+                )
+            }
+
+            is SalesProcessUiEvent.SavePinBlock -> {
+                _salesProcessUiModel = salesProcessUiModel.copy(
+                    pinBlock = event.pinBlock
+                )
+            }
+
+            is SalesProcessUiEvent.SaveKSN -> {
+                _salesProcessUiModel = salesProcessUiModel.copy(
+                    ksn = event.ksn
+                )
+            }
+
+            is SalesProcessUiEvent.SaveSequenceNumber -> {
+                _salesProcessUiModel = salesProcessUiModel.copy(
+                    sequenceNumber = event.sequenceNumber
+                )
+            }
+
+            is SalesProcessUiEvent.UUIDSale -> {
+                _salesProcessUiModel = salesProcessUiModel.copy(
+                    uuidSale = event.uuidSale
                 )
             }
         }

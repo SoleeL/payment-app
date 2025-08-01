@@ -44,8 +44,8 @@ open class ContactReadingViewModel @Inject constructor(
         MutableStateFlow<ReadingStepUiState>(ReadingStepUiState.Active)
 
     fun startContactReading(
-        onVerificationMethod: () -> Unit,
-        onFailedPayment: (paymentResult: PaymentResult) -> Unit
+        onFailedPayment: (errorCode: String, errorMessage: String) -> Unit,
+        onVerificationMethod: (brand: String, last4: Int) -> Unit
     ) {
         viewModelScope.launch {
             _contactReadingStepUiState.value = ReadingStepUiState.Active
@@ -66,22 +66,16 @@ open class ContactReadingViewModel @Inject constructor(
                     ReadingErrorType.InterfaceFallback,
                     ReadingErrorType.InvalidCard -> {
                         onFailedPayment(
-                            PaymentResult(
-                                isSuccess = false,
-                                message = failure.errorMessage,
-                                failedStep = "READING"
-                            )
+                            failure.errorCode ?: "UNKNOWN CODE",
+                            failure.errorMessage ?: "Error desconocido"
                         )
                     }
 
                     ReadingErrorType.PaymentRejected,
                     is ReadingErrorType.Other, null -> {
                         onFailedPayment(
-                            PaymentResult(
-                                isSuccess = false,
-                                message = failure?.errorMessage ?: "Error desconocido",
-                                failedStep = "READING"
-                            )
+                            failure?.errorCode ?: "UNKNOWN CODE",
+                            failure?.errorMessage ?: "Error desconocido"
                         )
                     }
                 }
@@ -93,7 +87,10 @@ open class ContactReadingViewModel @Inject constructor(
 
             delay(1000)
 
-            onVerificationMethod()
+            onVerificationMethod(
+                contactReadingResult.data.cardBrand,
+                contactReadingResult.data.cardNumber.takeLast(4).toInt()
+            )
         }
     }
 }

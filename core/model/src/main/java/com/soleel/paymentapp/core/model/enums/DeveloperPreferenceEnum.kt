@@ -77,10 +77,21 @@ enum class DeveloperPreferenceEnum(
         "Simula fallo en confirmación por error de autenticación"
     ),
 
-    PAYMENT_SAVE_FAIL_BY_SERVICE_ERROR(
-        "PAYMENT_SAVE_FAIL_BY_SERVICE_ERROR",
-        "Error servicio guardado pago",
-        "Simula fallo al guardar pago por error de servicio"
+    PAYMENT_SAVE_FAIL_BY_LOCAL_ERROR(
+        "PAYMENT_SAVE_FAIL_BY_LOCAL_ERROR",
+        "Error local guardando pago",
+        "Simula fallo al guardar pago por error local"
+    ),
+
+    SALE_SAVE_FAIL_BY_LOCAL_ERROR(
+        "SALE_SAVE_FAIL_BY_LOCAL_ERROR",
+        "Error local guardando venta",
+        "Simula fallo al guardar venta por error local"
+    ),
+    SALE_SAVE_FAIL_BY_SERVICE_ERROR(
+        "SALE_SAVE_FAIL_BY_SERVICE_ERROR",
+        "Error servicio guardando venta",
+        "Simula fallo al registrar venta por error de servicio"
     );
 
     companion object {

@@ -18,6 +18,7 @@ dependencies {
     implementation(projects.data.preferences)
 
     implementation(projects.domain.payment)
+    implementation(projects.domain.pinpad)
     implementation(projects.domain.reading)
     implementation(projects.domain.sale)
 }

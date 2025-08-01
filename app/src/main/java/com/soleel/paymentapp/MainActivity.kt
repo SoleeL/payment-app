@@ -8,6 +8,7 @@ import androidx.activity.enableEdgeToEdge
 import com.soleel.paymentapp.core.ui.theme.PaymentAppTheme
 import dagger.hilt.android.AndroidEntryPoint
 import android.content.Intent
+import com.soleel.paymentapp.core.model.intentsale.IntentSaleStatusEnum
 import com.soleel.paymentapp.feature.home.HomeGraph
 import com.soleel.paymentapp.feature.salesprocess.SalesProcessGraph
 import com.soleel.paymentapp.util.validateIntentSaleArgs
@@ -18,6 +19,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         var startDestination: Any = HomeGraph // default
+        var isExternalSale: Boolean = false
         if (intent?.action == "com.soleel.paymentapp.PROCESS_INTENT_TO_SALE") {
             val extras = intent.extras
 
@@ -52,6 +54,8 @@ class MainActivity : ComponentActivity() {
                 creditInstalments = creditInstalments,
                 debitChange = debitChange
             )
+
+            isExternalSale = true
         }
 
 //        startDestination = SalesProcessGraph(
@@ -63,14 +67,30 @@ class MainActivity : ComponentActivity() {
 //        )
 
         enableEdgeToEdge()
-        setContent(
-            content = {
-                PaymentAppTheme(
-                    content = {
-                        PaymentAppNavigationGraph(startDestination)
-                    }
+        setContent {
+            PaymentAppTheme {
+                PaymentAppNavigationGraph(
+                    startDestination = startDestination,
+                    finishWithResult = if (isExternalSale) ::finishWithResult else null
                 )
             }
-        )
+        }
+    }
+
+    private fun finishWithResult(
+        saleId: String? = null,
+        status: IntentSaleStatusEnum,
+        message: String? = null,
+        errorCode: String? = null
+    ) {
+        val resultIntent: Intent = Intent()
+        val bundle: Bundle = Bundle()
+        bundle.putString("saleId", saleId)
+        bundle.putInt("status", status.id)
+        bundle.putString("message", message)
+        bundle.putString("errorCode", errorCode)
+        resultIntent.putExtras(bundle)
+        setResult(Activity.RESULT_OK, resultIntent)
+        finish()
     }
 }

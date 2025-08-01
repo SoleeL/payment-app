@@ -29,7 +29,10 @@ import javax.inject.Inject
 sealed class PaymentProcessUiState<out T> {
     data object Loading : PaymentProcessUiState<Nothing>()
     data class Success<T>(val data: T) : PaymentProcessUiState<T>()
-    data class Failure(val errorMessage: String? = null) : PaymentProcessUiState<Nothing>()
+    data class Failure(val exception: Throwable) : PaymentProcessUiState<Nothing>() {
+        val errorCode: String? get() = exception::class.simpleName
+        val errorMessage: String? get() = exception.localizedMessage
+    }
 }
 
 sealed interface PaymentStepUiState {
@@ -61,7 +64,7 @@ open class RegisterPaymentViewModel @Inject constructor(
                 PaymentProcessUiState.Success(validationPaymentProcessResult.data)
             }
 
-            is Result.Error -> PaymentProcessUiState.Failure(validationPaymentProcessResult.exception.message)
+            is Result.Error -> PaymentProcessUiState.Failure(validationPaymentProcessResult.exception)
         }
     }
 
@@ -85,7 +88,7 @@ open class RegisterPaymentViewModel @Inject constructor(
                 PaymentProcessUiState.Success(confirmationPaymentProcessResult.data)
             }
 
-            is Result.Error -> PaymentProcessUiState.Failure(confirmationPaymentProcessResult.exception.message)
+            is Result.Error -> PaymentProcessUiState.Failure(confirmationPaymentProcessResult.exception)
         }
     }
 
@@ -109,7 +112,7 @@ open class RegisterPaymentViewModel @Inject constructor(
                 PaymentProcessUiState.Success(savePaymentProcessResult.data)
             }
 
-            is Result.Error -> PaymentProcessUiState.Failure(savePaymentProcessResult.exception.message)
+            is Result.Error -> PaymentProcessUiState.Failure(savePaymentProcessResult.exception)
         }
     }
 
@@ -125,7 +128,10 @@ open class RegisterPaymentViewModel @Inject constructor(
         MutableStateFlow<PaymentStepUiState>(PaymentStepUiState.Validating)
     val paymentStepUiState: StateFlow<PaymentStepUiState> = _paymentStepUiState
 
-    fun startPaymentProcess(onPaymentResult: (sale: Sale, paymentResult: PaymentResult) -> Unit) {
+    fun startPaymentProcess(
+        navigateToFailedPayment: (errorCode: String, errorMessage: String) -> Unit,
+        navigateToRegisterSale: (sequenceNumber: String) -> Unit
+    ) {
         viewModelScope.launch {
             _paymentStepUiState.value = PaymentStepUiState.Validating
 
@@ -136,29 +142,11 @@ open class RegisterPaymentViewModel @Inject constructor(
                     .first()
 
             if (validatingPaymentProcessResult !is PaymentProcessUiState.Success) {
-                val errorMessage: String? =
-                    (validatingPaymentProcessResult as? PaymentProcessUiState.Failure)?.errorMessage
-
-//                val validPins = listOf("1234", "0000", "9999") // Lista de PINs válidos
-//                    ReadingErrorType.PaymentRejected -> { TODO: IMPLEMENTAR RETORNO DE FALLAS
-//                        onPaymentResult(
-//                            PaymentResult(
-//                                isSuccess = false,
-//                                message = failure.errorMessage,
-//                                failedStep = "READING"
-//                            )
-//                        )
-//                    }
-
-                onPaymentResult(
-                    sale,
-                    PaymentResult(
-                        isSuccess = false,
-                        message = errorMessage,
-                        failedStep = "VALIDATING"
-                    )
+                val failure = validatingPaymentProcessResult as PaymentProcessUiState.Failure
+                navigateToFailedPayment(
+                    failure.errorCode ?: "UNKNOWN CODE",
+                    failure.errorMessage ?: "Error desconocido"
                 )
-
                 return@launch
             }
 
@@ -170,16 +158,11 @@ open class RegisterPaymentViewModel @Inject constructor(
                     .first()
 
             if (confirmingPaymentProcessResult !is PaymentProcessUiState.Success) {
-                val errorMessage: String? =
-                    (confirmingPaymentProcessResult as? PaymentProcessUiState.Failure)?.errorMessage
+                val failure = confirmingPaymentProcessResult as PaymentProcessUiState.Failure
 
-                onPaymentResult(
-                    sale,
-                    PaymentResult(
-                        isSuccess = false,
-                        message = errorMessage,
-                        failedStep = "CONFIRMING"
-                    )
+                navigateToFailedPayment(
+                    failure.errorCode ?: "UNKNOWN CODE",
+                    failure.errorMessage ?: "Error desconocido"
                 )
 
                 return@launch
@@ -193,32 +176,19 @@ open class RegisterPaymentViewModel @Inject constructor(
                     .first()
 
             if (savingPaymentProcessResult !is PaymentProcessUiState.Success) {
-                val errorMessage: String? =
-                    (savingPaymentProcessResult as? PaymentProcessUiState.Failure)?.errorMessage
-                onPaymentResult(
-                    sale,
-                    PaymentResult(
-                        isSuccess = false,
-                        message = errorMessage,
-                        failedStep = "SAVING"
-                    )
+                val failure = savingPaymentProcessResult as PaymentProcessUiState.Failure
+                navigateToFailedPayment(
+                    failure.errorCode ?: "UNKNOWN CODE",
+                    failure.errorMessage ?: "Error desconocido"
                 )
                 return@launch
             }
-
-            val paymentData: PaymentProcessData = savingPaymentProcessResult.data
 
             _paymentStepUiState.value = PaymentStepUiState.Done
 
             delay(1000)
 
-            onPaymentResult(
-                sale,
-                PaymentResult(
-                    isSuccess = true,
-                    paymentId = paymentData.id
-                )
-            )
+            navigateToRegisterSale(validatingPaymentProcessResult.data.sequenceNumber ?: "00000000")
         }
     }
 }

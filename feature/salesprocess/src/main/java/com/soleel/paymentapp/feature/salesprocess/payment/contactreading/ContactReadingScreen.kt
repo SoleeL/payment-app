@@ -30,9 +30,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.soleel.paymentapp.core.component.SalesSummaryHeader
 import com.soleel.paymentapp.core.model.paymentprocess.PaymentResult
 import com.soleel.paymentapp.core.ui.R
 import com.soleel.paymentapp.core.ui.utils.LongDevicePreview
@@ -50,9 +48,10 @@ private fun ContactReadingScreenLongPreview() {
             WithFakeTopAppBar(
                 content = {
                     ContactReadingScreen(
-                        navigateToVerificationMethod = { },
-                        navigateToFailedPayment = {}
-                    )
+                        navigateToFailedPayment = { _, _ -> },
+                        navigateToVerificationMethod = { _, _ -> },
+
+                        )
                 }
             )
         }
@@ -62,15 +61,15 @@ private fun ContactReadingScreenLongPreview() {
 @Composable
 fun ContactReadingScreen(
     contactReadingViewModel: ContactReadingViewModel = hiltViewModel(),
-    navigateToVerificationMethod: () -> Unit,
-    navigateToFailedPayment: (paymentResult: PaymentResult) -> Unit,
+    navigateToFailedPayment: (errorCode: String, errorMessage: String) -> Unit,
+    navigateToVerificationMethod: (brand: String, last4: Int) -> Unit
 ) {
     BackHandler(enabled = true, onBack = { })
 
     LaunchedEffect(Unit) {
         contactReadingViewModel.startContactReading(
-            onVerificationMethod = navigateToVerificationMethod,
-            onFailedPayment = navigateToFailedPayment
+            onFailedPayment = navigateToFailedPayment,
+            onVerificationMethod = navigateToVerificationMethod
         )
     }
 
@@ -82,7 +81,7 @@ fun ContactReadingScreen(
         content = {
             when (contactReadingUiState) {
                 ReadingUiState.Reading -> ContactReaderPrompt()
-                ReadingUiState.Success -> SuccessPrompt()
+                is ReadingUiState.Success -> SuccessPrompt()
                 is ReadingUiState.Failure -> FailurePrompt()
             }
         }

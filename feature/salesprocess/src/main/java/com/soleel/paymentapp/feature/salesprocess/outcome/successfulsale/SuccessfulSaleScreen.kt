@@ -64,11 +64,18 @@ fun SuccessfulSaleScreen(
                 )
             }
 
+            val selectedOptions = listOf(
+                SalesResultOptionEnum.PRINT,
+                SalesResultOptionEnum.EMAIL,
+                SalesResultOptionEnum.QR,
+                SalesResultOptionEnum.FINISH_SALE
+            )
+
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 content = {
                     items(
-                        items = SalesResultOptionEnum.entries,
+                        items = selectedOptions,
                         itemContent = { option ->
                             val buttonColors = if (option.highlight) {
                                 ButtonDefaults.buttonColors(
@@ -82,52 +89,51 @@ fun SuccessfulSaleScreen(
                                 )
                             }
 
-                            if (!option.isRetry) {
-                                Button(
-                                    onClick = {
-                                        when (option) {
-                                            SalesResultOptionEnum.PRINT -> TODO()
-                                            SalesResultOptionEnum.EMAIL -> TODO()
-                                            SalesResultOptionEnum.QR -> TODO()
-                                            SalesResultOptionEnum.FINISH_SALE -> {
-                                                finalizeSale()
-                                            }
-
-                                            SalesResultOptionEnum.RETRY_SALE -> TODO()
+                            Button(
+                                onClick = {
+                                    when (option) {
+                                        SalesResultOptionEnum.PRINT -> TODO()
+                                        SalesResultOptionEnum.EMAIL -> TODO()
+                                        SalesResultOptionEnum.QR -> TODO()
+                                        SalesResultOptionEnum.FINISH_SALE -> {
+                                            finalizeSale()
                                         }
-                                    },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(56.dp),
-                                    colors = buttonColors,
-                                    shape = RoundedCornerShape(12.dp),
-                                    content = {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.spacedBy(16.dp),
-                                            modifier = Modifier.fillMaxWidth()
-                                        ) {
-                                            Icon(
-                                                painter = painterResource(id = option.icon),
-                                                contentDescription = option.displayName,
-                                                modifier = Modifier.size(32.dp)
+
+                                        SalesResultOptionEnum.RETRY_STORE_SALE -> TODO()
+                                        SalesResultOptionEnum.RETRY_REGISTER_SALE -> TODO()
+                                    }
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(56.dp),
+                                colors = buttonColors,
+                                shape = RoundedCornerShape(12.dp),
+                                content = {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(id = option.icon),
+                                            contentDescription = option.displayName,
+                                            modifier = Modifier.size(32.dp)
+                                        )
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = option.displayName,
+                                                style = MaterialTheme.typography.titleMedium
                                             )
-                                            Column(modifier = Modifier.weight(1f)) {
+                                            if (option.displayDescription.isNotEmpty()) {
                                                 Text(
-                                                    text = option.displayName,
-                                                    style = MaterialTheme.typography.titleMedium
+                                                    text = option.displayDescription,
+                                                    style = MaterialTheme.typography.bodySmall
                                                 )
-                                                if (option.displayDescription.isNotEmpty()) {
-                                                    Text(
-                                                        text = option.displayDescription,
-                                                        style = MaterialTheme.typography.bodySmall
-                                                    )
-                                                }
                                             }
                                         }
                                     }
-                                )
-                            }
+                                }
+                            )
                         }
                     )
                 }

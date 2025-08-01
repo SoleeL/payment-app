@@ -1,6 +1,8 @@
 package com.soleel.paymentapp.domain.payment
 
+import com.soleel.paymentapp.core.model.enums.DeveloperPreferenceEnum
 import com.soleel.paymentapp.core.model.paymentprocess.ValidationPaymentProcessData
+import com.soleel.paymentapp.data.preferences.developer.IDeveloperPreferences
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -29,15 +31,31 @@ fun interface IRequestValidationPaymentUseCase {
 //    override operator fun invoke(): Flow<ValidationPaymentProcessData> = ...
 //}
 
-class RequestValidationPaymentUseCaseMock @Inject constructor() : IRequestValidationPaymentUseCase {
+class RequestValidationPaymentUseCaseMock @Inject constructor(
+    private val developerPreferences: IDeveloperPreferences
+) : IRequestValidationPaymentUseCase {
     override fun invoke(): Flow<ValidationPaymentProcessData> = flow {
         delay(2000) // Simula una espera de 2 segundos
-        emit(
-            ValidationPaymentProcessData(
-                isValid = true,
-                message = "Validación exitosa",
-                validationCode = "VAL-TEST-1234"
-            )
+
+        val paymentRejectedEnabled = developerPreferences.isEnabled(
+            DeveloperPreferenceEnum.PAYMENT_VALIDATION_FAIL_BY_ACQUIRER_ERROR
         )
+
+        when {
+            paymentRejectedEnabled -> throw PaymentRejectedException()
+            else -> {
+                val randomSequenceNumber = (10000000..99999999).random()
+                emit(
+                    ValidationPaymentProcessData(
+                        isValid = true,
+                        message = "Validación exitosa",
+                        validationCode = "VAL-TEST-1234",
+                        sequenceNumber = randomSequenceNumber.toString()
+                    )
+                )
+            }
+        }
     }
 }
+
+class PaymentRejectedException(message: String = "Adquire: pago rechazado") : Exception(message)
