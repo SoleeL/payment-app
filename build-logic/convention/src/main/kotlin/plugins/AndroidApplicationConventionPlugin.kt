@@ -26,6 +26,9 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
                     versionCode = Config.android.versionCode
                     versionName = Config.android.versionName
 
+                    buildConfigField("int", "VERSION_CODE", "${Config.android.versionCode}")
+                    buildConfigField("String", "VERSION_NAME", "\"${Config.android.versionName}\"")
+
                     proguardFiles(
                         getDefaultProguardFile("proguard-android-optimize.txt"),
                         "proguard-rules.pro"

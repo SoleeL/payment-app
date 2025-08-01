@@ -5,11 +5,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.soleel.paymentapp.core.common.result.Result
 import com.soleel.paymentapp.core.common.result.asResult
+import com.soleel.paymentapp.core.model.base.Payment
+import com.soleel.paymentapp.core.model.base.Sale
+import com.soleel.paymentapp.core.model.enums.PaymentMethodEnum
 import com.soleel.paymentapp.core.model.outcomeprocess.RecordingSaleProcessData
-import com.soleel.paymentapp.core.model.outcomeprocess.StoreSaleProcessData
 import com.soleel.paymentapp.core.model.paymentprocess.PaymentResult
 import com.soleel.paymentapp.domain.sale.IRecordingSaleUseCase
 import com.soleel.paymentapp.domain.sale.IStoreSaleUseCase
+import com.soleel.paymentapp.feature.salesprocess.payment.registerpayment.PaymentProcessUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -21,6 +24,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 
 sealed class SaleRegisterProcessUiState<out T> {
@@ -48,29 +52,39 @@ open class RegisterSaleViewModel @Inject constructor(
     val paymentResult: PaymentResult =
         savedStateHandle.get<PaymentResult>("paymentResult") ?: PaymentResult(isSuccess = false)
 
-
-    private val _storeSaleProcessUiState: Flow<SaleRegisterProcessUiState<StoreSaleProcessData>> =
-        storeSaleUseCase()
+    private fun storeSaleProcessUiState(
+        paymentUUID: UUID,
+        subtotal: Int,
+        cashChangeSelected: Int?,
+        debitCashback: Int?,
+        source: String?,
+    ): StateFlow<SaleRegisterProcessUiState<Sale>> {
+        return storeSaleUseCase(
+            paymentUUID,
+            subtotal,
+            cashChangeSelected,
+            debitCashback,
+            source
+        )
             .asResult()
-            .map(transform = { getStoreSaleProcessData(it) })
-
-    private fun getStoreSaleProcessData(storeSaleProcessDataResult: Result<StoreSaleProcessData>): SaleRegisterProcessUiState<StoreSaleProcessData> {
-        return when (storeSaleProcessDataResult) {
-            Result.Loading -> SaleRegisterProcessUiState.Loading
-            is Result.Success<StoreSaleProcessData> -> {
-                SaleRegisterProcessUiState.Success(storeSaleProcessDataResult.data)
-            }
-            is Result.Error -> SaleRegisterProcessUiState.Failure(storeSaleProcessDataResult.exception)
-        }
-    }
-
-    private val storeSaleProcessUiState: StateFlow<SaleRegisterProcessUiState<StoreSaleProcessData>> =
-        _storeSaleProcessUiState
+            .map { getStoreSaleProcessData(it) }
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5_000),
                 initialValue = SaleRegisterProcessUiState.Loading
             )
+    }
+
+    private fun getStoreSaleProcessData(storeSaleProcessDataResult: Result<Sale>): SaleRegisterProcessUiState<Sale> {
+        return when (storeSaleProcessDataResult) {
+            Result.Loading -> SaleRegisterProcessUiState.Loading
+            is Result.Success<Sale> -> {
+                SaleRegisterProcessUiState.Success(storeSaleProcessDataResult.data)
+            }
+
+            is Result.Error -> SaleRegisterProcessUiState.Failure(storeSaleProcessDataResult.exception)
+        }
+    }
 
     private val _recordingSaleProcessUiState: Flow<SaleRegisterProcessUiState<RecordingSaleProcessData>> =
         recordingSaleUseCase()
@@ -83,6 +97,7 @@ open class RegisterSaleViewModel @Inject constructor(
             is Result.Success<RecordingSaleProcessData> -> {
                 SaleRegisterProcessUiState.Success(recordingSaleProcessDataResult.data)
             }
+
             is Result.Error -> SaleRegisterProcessUiState.Failure(recordingSaleProcessDataResult.exception)
         }
     }
@@ -102,13 +117,24 @@ open class RegisterSaleViewModel @Inject constructor(
     fun startPaymentProcess(
         navigateToFailedSale: (errorCode: String, errorMessage: String) -> Unit,
         navigateToPendingSale: (uuidSale: String) -> Unit,
-        navigateToSuccessfulSale: (uuidSale: String) -> Unit
+        navigateToSuccessfulSale: (uuidSale: String) -> Unit,
+        paymentUUID: String,
+        subtotal: Int,
+        cashChangeSelected: Int?,
+        debitCashback: Int?,
+        source: String?
     ) {
         viewModelScope.launch {
             _registerSaleStepUiState.value = SaleRegisterStepUiState.Storing
 
-            val storeSaleProcessResult: SaleRegisterProcessUiState<StoreSaleProcessData> =
-                storeSaleProcessUiState
+            val storeSaleProcessResult: SaleRegisterProcessUiState<Sale> =
+                storeSaleProcessUiState(
+                    paymentUUID = UUID.fromString(paymentUUID),
+                    subtotal = subtotal,
+                    cashChangeSelected = cashChangeSelected,
+                    debitCashback = debitCashback,
+                    source = source
+                )
                     .filter(predicate = { it !is SaleRegisterProcessUiState.Loading })
                     .first()
 
@@ -129,7 +155,7 @@ open class RegisterSaleViewModel @Inject constructor(
                     .first()
 
             if (recordingSaleProcessResult !is SaleRegisterProcessUiState.Success) {
-                navigateToPendingSale(storeSaleProcessResult.data.saleUUID.toString())
+                navigateToPendingSale(storeSaleProcessResult.data.id.toString())
                 return@launch
             }
 
@@ -137,7 +163,7 @@ open class RegisterSaleViewModel @Inject constructor(
 
             delay(1000)
 
-            navigateToSuccessfulSale(storeSaleProcessResult.data.saleUUID.toString())
+            navigateToSuccessfulSale(storeSaleProcessResult.data.id.toString())
         }
     }
 }

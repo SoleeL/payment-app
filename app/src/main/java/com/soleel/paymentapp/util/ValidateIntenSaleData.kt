@@ -6,6 +6,7 @@ import com.soleel.paymentapp.core.model.intentsale.IntentSaleStatusEnum
 
 fun validateIntentSaleArgs(
     commerceId: String,
+    source: String,
     totalAmount: Int,
     paymentMethod: Int,
     cashChange: Int,
@@ -18,6 +19,14 @@ fun validateIntentSaleArgs(
         bundle.putString("saleId", null)
         bundle.putInt("status", IntentSaleStatusEnum.ERROR.id)
         bundle.putString("message", "Parametro 'id de comercio' invalido",)
+        bundle.putString("errorCode", "ERR_INVALID_PARAMS")
+        return bundle
+    }
+
+    if (source.isBlank()) {
+        bundle.putString("saleId", null)
+        bundle.putInt("status", IntentSaleStatusEnum.ERROR.id)
+        bundle.putString("message", "Parametro 'source' invalido",)
         bundle.putString("errorCode", "ERR_INVALID_PARAMS")
         return bundle
     }

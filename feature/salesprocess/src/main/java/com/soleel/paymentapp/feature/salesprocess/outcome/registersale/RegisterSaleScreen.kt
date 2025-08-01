@@ -20,6 +20,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.soleel.paymentapp.feature.salesprocess.component.AdBanner
 import kotlinx.coroutines.delay
+import java.util.UUID
 
 
 @Composable
@@ -27,7 +28,12 @@ fun RegisterSaleScreen(
     registerSaleViewModel: RegisterSaleViewModel = hiltViewModel(),
     navigateToFailedSale: (errorCode: String, errorMessage: String) -> Unit,
     navigateToPendingSale: (uuidSale: String) -> Unit,
-    navigateToSuccessfulSale: (uuidSale: String) -> Unit
+    navigateToSuccessfulSale: (uuidSale: String) -> Unit,
+    paymentUUID: String,
+    subtotal: Int,
+    cashChangeSelected: Int?,
+    debitCashback: Int?,
+    source: String?
 ) {
     BackHandler(enabled = true, onBack = { })
 
@@ -35,7 +41,12 @@ fun RegisterSaleScreen(
         registerSaleViewModel.startPaymentProcess(
             navigateToFailedSale,
             navigateToPendingSale,
-            navigateToSuccessfulSale
+            navigateToSuccessfulSale,
+            paymentUUID,
+            subtotal,
+            cashChangeSelected,
+            debitCashback,
+            source
         )
     }
 

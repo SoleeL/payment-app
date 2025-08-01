@@ -12,8 +12,8 @@ data class SaleEntity(
     @ColumnInfo(name = "payment_id") val paymentId: String,
 
     @ColumnInfo(name = "subtotal") val subtotal: Int,
-    @ColumnInfo(name = "tip") val tip: Int,
-    @ColumnInfo(name = "debit_cashback") val debitCashback: Int,
+//    @ColumnInfo(name = "tip") val tip: Int,
+    @ColumnInfo(name = "debit_cashback") val debitCashback: Int?,
 
     @ColumnInfo(name = "cash_change_selected") val cashChangeSelected: Int?,
 

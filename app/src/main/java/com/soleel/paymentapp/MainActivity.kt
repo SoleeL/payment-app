@@ -24,6 +24,7 @@ class MainActivity : ComponentActivity() {
             val extras = intent.extras
 
             val commerceId: String = extras?.getString("commerceId", "") ?: ""
+            val source: String = extras?.getString("source", "") ?: ""
             val totalAmount: Int = extras?.getInt("totalAmount", 0) ?: 0
             val paymentMethod: Int = extras?.getInt("paymentMethod", -1) ?: -1
             val cashChange: Int = extras?.getInt("cashChange", -1) ?: -1
@@ -32,6 +33,7 @@ class MainActivity : ComponentActivity() {
 
             val bundle: Bundle? = validateIntentSaleArgs(
                 commerceId = commerceId,
+                source = source,
                 totalAmount = totalAmount,
                 paymentMethod = paymentMethod,
                 cashChange = cashChange,
@@ -49,6 +51,7 @@ class MainActivity : ComponentActivity() {
 
             startDestination = SalesProcessGraph(
                 totalAmount = totalAmount,
+                source = source,
                 paymentMethod = paymentMethod,
                 cashChange = cashChange,
                 creditInstalments = creditInstalments,
@@ -60,6 +63,7 @@ class MainActivity : ComponentActivity() {
 
 //        startDestination = SalesProcessGraph(
 //            totalAmount = 10000,
+//            source = "OTRA APP",
 //            paymentMethod = -1,
 //            cashChange = -1,
 //            creditInstalments = -1,

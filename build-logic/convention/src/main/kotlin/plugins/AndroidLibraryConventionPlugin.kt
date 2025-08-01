@@ -19,6 +19,17 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
             }
 
             extensions.configure<LibraryExtension> {
+
+                buildFeatures {
+                    buildConfig = true
+                }
+
+                defaultConfig {
+                    buildConfigField("String", "APP_PACKAGE_NAME", "\"${Config.android.applicationId}\"")
+                    buildConfigField("int", "VERSION_CODE", "${Config.android.versionCode}")
+                    buildConfigField("String", "VERSION_NAME", "\"${Config.android.versionName}\"")
+                }
+
                 configureAndroidKotlin(this)
                 configureBuildTypes(this)
                 defaultConfig.apply {
