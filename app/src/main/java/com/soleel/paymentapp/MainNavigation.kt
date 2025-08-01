@@ -22,12 +22,15 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.soleel.paymentapp.core.model.Sale
+import com.soleel.paymentapp.core.model.intentsale.IntentSaleStatusEnum
+import com.soleel.paymentapp.core.navigation.createNavType
 import com.soleel.paymentapp.feature.home.HomeGraph
 import com.soleel.paymentapp.feature.home.homeNavigationGraph
 import com.soleel.paymentapp.feature.salesprocess.SalesProcessGraph
-import com.soleel.paymentapp.feature.salesprocess.salesProcessNavigationGraph
-import com.soleel.paymentapp.feature.transactionprocess.transactionProcessNavigationGraph
+import com.soleel.paymentapp.feature.salesprocess.salesProcessGraph
 import kotlinx.serialization.Serializable
+import kotlin.reflect.typeOf
 
 @Serializable
 object Loading
@@ -36,12 +39,15 @@ object Loading
 object Error
 
 @Composable
-fun PaymentAppNavigationGraph() {
+fun PaymentAppNavigationGraph(
+    startDestination: Any,
+    finishWithResult: ((saleId: String?, status: IntentSaleStatusEnum, message: String?, errorCode: String?) -> Unit)? = null
+) {
     val navHostController: NavHostController = rememberNavController()
 
     NavHost(
         navController = navHostController,
-        startDestination = HomeGraph,
+        startDestination = startDestination,
         builder = {
             composable<Loading>(
                 content = {
@@ -56,16 +62,19 @@ fun PaymentAppNavigationGraph() {
             )
 
             homeNavigationGraph(
-                navigateToSalesProcessGraph = { amount: Int ->
-                    navHostController.navigate(SalesProcessGraph(amount))
+                navigateToSalesProcessGraph = { totalAmount: Float ->
+                    navHostController.navigate(SalesProcessGraph(totalAmount.toInt()))
                 }
             )
 
-            salesProcessNavigationGraph(
-                backToPrevious = { navHostController.popBackStack() }
+            salesProcessGraph(
+                saleToNavType = mapOf(typeOf<Sale>() to createNavType<Sale>()),
+                finalizeSale = {
+                    navHostController.popBackStack(HomeGraph, inclusive = true)
+                    navHostController.navigate(HomeGraph)
+                },
+                finishWithResult = finishWithResult
             )
-
-            transactionProcessNavigationGraph()
         }
     )
 }

@@ -1,0 +1,67 @@
+# TODO
+
+## Prioridad
+- [X] Limpiar calculadora al finalizar una venta
+- [X] Implementar flujo de entrada de Intent
+- [X] Implementar flujo de salida de Intent
+
+## Alta
+- [X] PaymentTypeSelection: Implementar vista y logica
+- [X] CreditInstallmentsSelection: Implementar vista y logica
+- [ ] DebitChangeSelection: Implementar vista y logica
+- [X] ContactlessReading: Implementar vista y logica
+- [X] ContactReading: Implementar vista y logica
+- [X] Pinpad: Implementar vista y logica
+- [X] ProcessPayment: Implementar vista y logica
+- [X] FailedPayment: Implementar vista y logica
+
+- [X] RegisterSale: Implementar vista y logica
+- [X] SuccessfulSale: Implementar vista y logica
+- [X] PendingSale: Implementar vista y logica
+- [X] FailedSale: Implementar vista y logica
+
+- [X] ContactlessReading: Eliminar stack al navegar a ella
+- [X] ContactlessReading: bloquear navegacion de BackButton
+
+- [X] ContactReading: Eliminar stack al navegar a ella
+- [X] ContactlContactReadingessReading: bloquear navegacion de BackButton
+
+- [X] Pinpad: Eliminar stack al navegar a ella
+- [ ] Pinpad: implementar modal de cancelacion
+
+- [X] ProcessPayment: Eliminar stack al navegar a ella
+- [X] ProcessPayment: bloquear navegacion de BackButton
+
+- [X] FailedPayment: Eliminar stack al navegar a ella
+- [ ] FailedPayment: Al presionar BackButton presentar Modal de cancelacion
+- [ ] FailedPayment: No se ve el texto del mensaje del error cuando el tema es el claro
+
+- [X] RegisterSale: Eliminar stack al navegar a ella
+- [X] RegisterSale: bloquear navegacion de BackButton
+
+- [X] SuccessfulSale: Eliminar stack al navegar a ella
+- [ ] SuccessfulSale: mostrar modal si aun no se se imprimeo o otra interaccion de voucher, si ya se hizo... entonces finalizar la centa
+
+- [X] PendingSale: Eliminar stack al navegar a ella
+- [ ] PendingSale: mostrar modal de que la venta esta pendiente de registro
+- [X] PendingSale: reintentar registro y finalizar venta
+
+- [X] FailedSale: Eliminar stack al navegar a ella
+- [ ] FailedSale: Al presionar BackButton presentar Modal de cancelacion
+
+- [X] salesProcessGraph: Implementar logica de navigacion al cancelar (Modal de cancelacion)
+- [x] SalesProcessScreen - TopAppBar: Condicionar aparecion del boton cancelar
+
+## Media
+- [ ] CashChangeCalculator: Implementar vista y logica
+
+- [ ] ViewModel: Eliminar valores al retroceder en el Setup
+    - [x] CashChangeCalculator
+    - [x] CreditInstallmentsSelection
+    - [x] DebitChangeSelection
+    
+## Baja
+- [ ] TipSelection: Pendiente de implementacion
+- [ ] PrintVoucher // README: Puede ser un modal
+- [ ] SendVoucherToEmail // README: Puede ser un modal
+- [ ] QRDownloadVoucher // README: Puede ser un modal
