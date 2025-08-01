@@ -52,7 +52,7 @@ import com.soleel.paymentapp.feature.home.bills.BillsScreen
 import com.soleel.paymentapp.feature.home.calculator.CalculatorScreen
 import com.soleel.paymentapp.feature.home.catalog.CatalogScreen
 import com.soleel.paymentapp.feature.home.profile.ProfileScreen
-import com.soleel.paymentapp.feature.home.sales.SalesScreen
+import com.soleel.paymentapp.feature.home.sales.SalesListScreen
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
@@ -209,7 +209,7 @@ fun HomeScreen(
                     }
                     composable<HomeTopBarScreens.Catalog> { CatalogScreen() }
                     composable<HomeTopBarScreens.Bills> { BillsScreen() }
-                    composable<HomeTopBarScreens.Sales> { SalesScreen() }
+                    composable<HomeTopBarScreens.Sales> { SalesListScreen() }
                     composable<HomeTopBarScreens.Profile> { ProfileScreen() }
                 }
             }
