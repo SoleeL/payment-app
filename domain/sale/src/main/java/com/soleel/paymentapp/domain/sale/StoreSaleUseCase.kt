@@ -2,8 +2,8 @@ package com.soleel.paymentapp.domain.sale
 
 import com.soleel.paymentapp.core.model.base.Sale
 import com.soleel.paymentapp.core.model.enums.DeveloperPreferenceEnum
-import com.soleel.paymentapp.core.model.outcomeprocess.StoreSaleProcessData
 import com.soleel.paymentapp.data.preferences.developer.IDeveloperPreferences
+import com.soleel.paymentapp.data.sale.inteface.ISaleLocalDataSource
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -27,7 +27,13 @@ abstract class StoreSaleUseCaseModule {
 }
 
 fun interface IStoreSaleUseCase {
-    operator fun invoke(): Flow<StoreSaleProcessData>
+    operator fun invoke(
+        paymentUUID: UUID,
+        subtotal: Int,
+        cashChangeSelected: Int?,
+        debitCashback: Int?,
+        source: String?,
+    ): Flow<Sale>
 }
 
 //class StoreSaleUseCase @Inject constructor() :
@@ -36,9 +42,17 @@ fun interface IStoreSaleUseCase {
 //}
 
 class StoreSaleUseCaseMock @Inject constructor(
+    private val saleRepository: ISaleLocalDataSource,
+
     private val developerPreferences: IDeveloperPreferences
 ) : IStoreSaleUseCase {
-    override fun invoke(): Flow<StoreSaleProcessData> = flow {
+    override fun invoke(
+        paymentUUID: UUID,
+        subtotal: Int,
+        cashChangeSelected: Int?,
+        debitCashback: Int?,
+        source: String?,
+    ): Flow<Sale> = flow {
         delay(2000)
 
         val saleSaveFailByLocalErrorEnabled = developerPreferences.isEnabled(
@@ -47,27 +61,23 @@ class StoreSaleUseCaseMock @Inject constructor(
         when {
             saleSaveFailByLocalErrorEnabled -> throw SaleSaveLocalErrorException()
             else -> {
-                emit(
-                    StoreSaleProcessData(
-                        saleUUID = UUID.randomUUID(),
-                        sale = Sale(
-                            id = UUID.randomUUID(),
-                            paymentId = UUID.randomUUID(),
-                            subtotal = 5000,
-                            tip = 1000,
-                            debitCashback = 1000,
-                            cashChangeSelected = null,
-                            source = "MOCK",
-                            versionApp = "1.0.0",
-                            createdAt = LocalDateTime.now(),
-                            updatedAt = LocalDateTime.now()
-                        ),
-                        timestamp = System.currentTimeMillis()
-                    )
+                val sale = Sale(
+                    id = UUID.randomUUID(),
+                    paymentId = paymentUUID,
+                    subtotal = subtotal,
+                    cashChangeSelected = cashChangeSelected,
+                    debitCashback = debitCashback,
+                    source = source ?: BuildConfig.APP_PACKAGE_NAME,
+                    versionApp = BuildConfig.VERSION_NAME,
+                    createdAt = LocalDateTime.now(),
+                    updatedAt = LocalDateTime.now()
                 )
+                saleRepository.createSale(sale)
+                emit(sale)
             }
         }
     }
 }
 
-class SaleSaveLocalErrorException(message: String = "Terminal: venta no almacenada") : Exception(message)
+class SaleSaveLocalErrorException(message: String = "Terminal: venta no almacenada") :
+    Exception(message)

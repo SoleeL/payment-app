@@ -20,8 +20,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import com.soleel.paymentapp.core.model.paymentprocess.PaymentResult
 import com.soleel.paymentapp.core.ui.R
 import com.soleel.paymentapp.core.ui.utils.LongDevicePreview
 import com.soleel.paymentapp.core.ui.utils.WithFakeSystemBars
@@ -36,7 +34,9 @@ private fun FailedPaymentScreenLongPreview() {
                 content = {
                     FailedPaymentScreen(
                         onRetryPaymentMethod = {},
-                        onSelectAnotherPaymentMethod = {}
+                        onSelectAnotherPaymentMethod = {},
+                        errorCode = "",
+                        errorMessage = ""
                     )
                 }
             )
@@ -46,9 +46,10 @@ private fun FailedPaymentScreenLongPreview() {
 
 @Composable
 fun FailedPaymentScreen(
-    failedPaymentViewModel: FailedPaymentViewModel = hiltViewModel(),
     onRetryPaymentMethod: () -> Unit,
-    onSelectAnotherPaymentMethod: () -> Unit
+    onSelectAnotherPaymentMethod: () -> Unit,
+    errorCode: String?,
+    errorMessage: String?
 ) {
     BackHandler(
         enabled = true,
@@ -57,27 +58,6 @@ fun FailedPaymentScreen(
         }
     )
 
-    val failedPaymentResult: PaymentResult = failedPaymentViewModel.paymentResult
-
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.SpaceBetween,
-        content = {
-            FailedPaymentScreenContent(
-                failedPaymentResult = failedPaymentResult,
-                onRetryPaymentMethod = { onRetryPaymentMethod() },
-                onSelectAnotherPaymentMethod = onSelectAnotherPaymentMethod
-            )
-        }
-    )
-}
-
-@Composable
-fun FailedPaymentScreenContent(
-    failedPaymentResult: PaymentResult,
-    onRetryPaymentMethod: () -> Unit,
-    onSelectAnotherPaymentMethod: () -> Unit
-) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -105,21 +85,21 @@ fun FailedPaymentScreenContent(
                 color = MaterialTheme.colorScheme.error
             )
 
-            failedPaymentResult.message?.let { message ->
+            errorCode?.let {
                 Text(
-                    text = message,
+                    text = "Codigo de error: $it",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 8.dp)
                 )
             }
 
-            failedPaymentResult.paymentId?.let { id ->
+            errorMessage?.let {
                 Text(
-                    text = "ID de pago: $id",
-                    style = MaterialTheme.typography.labelSmall,
+                    text = it,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 16.dp)
+                    modifier = Modifier.padding(top = 8.dp)
                 )
             }
         }

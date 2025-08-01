@@ -10,8 +10,8 @@ data class Sale(
 
     // README: El monto total no es lo mismo que el total a pagar
     val subtotal: Int, // Calculadora o externo
-    val tip: Int, // Sumar
-    val debitCashback: Int, // Sumar
+//    val tip: Int, // Sumar
+    val debitCashback: Int?, // Sumar
 
     val cashChangeSelected: Int? = null,
 

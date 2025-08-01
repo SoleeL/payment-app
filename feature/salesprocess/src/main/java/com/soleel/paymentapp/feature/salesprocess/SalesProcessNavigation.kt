@@ -74,6 +74,7 @@ private fun SalesProcessScreenLongPreview() {
 @Serializable
 data class SalesProcessGraph(
     val totalAmount: Int,
+    val source: String? = null,
     val paymentMethod: Int = -1,
     val cashChange: Int = -1,
     val creditInstalments: Int = -1,
@@ -590,7 +591,8 @@ fun SalesProcessScreen(
                                             )
                                         },
                                         method = salesProcessUiModel.paymentMethodSelected!!,
-                                        amount = salesProcessUiModel.totalAmount + (salesProcessUiModel.debitChangeSelected ?: 0),
+                                        amount = salesProcessUiModel.totalAmount + (salesProcessUiModel.debitChangeSelected
+                                            ?: 0),
                                         instalments = salesProcessUiModel.creditInstalmentsSelected,
                                         applicationLabel = salesProcessUiModel.applicationLabelObtained!!,
                                         aid = salesProcessUiModel.aidObtained!!,
@@ -658,7 +660,9 @@ fun SalesProcessScreen(
                                                     launchSingleTop = true
                                                 }
                                             )
-                                        }
+                                        },
+                                        errorCode = salesProcessUiModel.errorCode,
+                                        errorMessage = salesProcessUiModel.errorMessage,
                                     )
                                 }
                             )
@@ -702,7 +706,6 @@ fun SalesProcessScreen(
                                                 }
                                             )
                                         },
-
                                         navigateToSuccessfulSale = { uuidSale: String ->
                                             salesProcessViewModel.onSalesProcessUiEvent(
                                                 SalesProcessUiEvent.UUIDSale(uuidSale)
@@ -718,6 +721,11 @@ fun SalesProcessScreen(
                                                 }
                                             )
                                         },
+                                        paymentUUID = salesProcessUiModel.uuidPayment!!,
+                                        subtotal = salesProcessUiModel.totalAmount,
+                                        cashChangeSelected = salesProcessUiModel.cashChangeSelected,
+                                        debitCashback = salesProcessUiModel.debitChangeSelected,
+                                        source = salesProcessUiModel.source,
                                     )
                                 }
                             )

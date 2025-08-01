@@ -12,6 +12,8 @@ import javax.inject.Inject
 data class SalesProcessUiModel(
     val totalAmount: Int,
 
+    val source: String?,
+
 //    val tipTotal: Int? = null,
     val paymentMethodSelected: PaymentMethodEnum? = null,
     val cashChangeSelected: Int? = null,
@@ -64,6 +66,7 @@ open class SalesProcessViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val totalAmount: Int = savedStateHandle.get<Int>("totalAmount") ?: 0
+    private val source: String = savedStateHandle.get<String>("source") ?: ""
     private val paymentMethod: Int = savedStateHandle.get<Int>("paymentMethod") ?: -1
     private val cashChange: Int = savedStateHandle.get<Int>("cashChange") ?: -1
     private val creditInstalments: Int = savedStateHandle.get<Int>("creditInstalments") ?: -1
@@ -72,6 +75,7 @@ open class SalesProcessViewModel @Inject constructor(
     private var _salesProcessUiModel: SalesProcessUiModel by mutableStateOf(
         SalesProcessUiModel(
             totalAmount = totalAmount,
+            source = source.ifEmpty { null },
 //            tipTotal = null, // o algún valor por defecto
             paymentMethodSelected = PaymentMethodEnum.fromId(paymentMethod),
             cashChangeSelected = if (cashChange != -1) cashChange else null,

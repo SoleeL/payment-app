@@ -192,14 +192,14 @@ open class RegisterPaymentViewModel @Inject constructor(
 
             val storingPaymentProcessResult: PaymentProcessUiState<Payment> =
                 storingPaymentProcessUiState(
-                    method,
-                    amount,
-                    instalments,
-                    applicationLabel,
-                    aid,
-                    last4,
-                    validatingPaymentProcessResult.data.sequenceNumber!!, // README: HIPOTETICO
-                    validatingPaymentProcessResult.data.authCode!! // README: HIPOTETICO
+                    method = method,
+                    amount = amount,
+                    instalments = instalments,
+                    applicationLabel = applicationLabel,
+                    aid = aid,
+                    last4 = last4,
+                    sequenceNumber = validatingPaymentProcessResult.data.sequenceNumber!!, // README: HIPOTETICO
+                    authCode = validatingPaymentProcessResult.data.authCode!! // README: HIPOTETICO
                 )
                     .filter(predicate = { it !is PaymentProcessUiState.Loading })
                     .first()
