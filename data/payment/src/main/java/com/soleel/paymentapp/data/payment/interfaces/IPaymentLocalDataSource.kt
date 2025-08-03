@@ -1,4 +1,4 @@
-package com.soleel.paymentapp.data.payment.inteface
+package com.soleel.paymentapp.data.payment.interfaces
 
 import com.soleel.paymentapp.core.model.base.Payment
 import kotlinx.coroutines.flow.Flow

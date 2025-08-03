@@ -164,6 +164,9 @@ fun getStartDestination(salesProcessUiModel: SalesProcessUiModel): Any {
             }
             return ContactlessReading
         }
+
+        PaymentMethodEnum.QR -> TODO()
+        PaymentMethodEnum.BIOMETRIC_AUTHENTICATION -> TODO()
     }
 }
 
@@ -310,6 +313,9 @@ fun SalesProcessScreen(
                                                         DebitChangeSelection
                                                     )
                                                 }
+
+                                                PaymentMethodEnum.QR -> TODO()
+                                                PaymentMethodEnum.BIOMETRIC_AUTHENTICATION -> TODO()
                                             }
                                         }
                                     )

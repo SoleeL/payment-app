@@ -187,7 +187,7 @@ fun SalesSummaryHeader(
                                     withStyle(
                                         style = SpanStyle(fontWeight = FontWeight.Bold),
                                         block = {
-                                            append(paymentMethodSelected.value)
+                                            append(paymentMethodSelected.displayName)
                                         }
                                     )
                                 }

@@ -33,19 +33,20 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.soleel.paymentapp.core.ui.utils.LongDevicePreview
 import com.soleel.paymentapp.core.ui.utils.WithFakeSystemBars
 import com.soleel.paymentapp.core.ui.utils.WithFakeTopAppBar
+import com.soleel.paymentapp.domain.pinpad.pinblockrequest.PinBlockRequestUseCaseMock
 import kotlinx.coroutines.delay
 
 
 @LongDevicePreview
 @Composable
 private fun CashChangeCalculatorScreenLongPreview() {
-
-
+    val pinpadViewModel: PinpadViewModel = PinpadViewModel(PinBlockRequestUseCaseMock())
     WithFakeSystemBars(
         content = {
             WithFakeTopAppBar(
                 content = {
                     PinpadScreen(
+                        pinpadViewModel = pinpadViewModel,
                         onCancel = { },
                         navigateToFailedPayment = { _, _ -> },
                         navigateToProcessPayment = { _, _ -> }
@@ -77,77 +78,83 @@ fun PinpadScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(bottom = 16.dp),
-        verticalArrangement = Arrangement.SpaceBetween
-    ) {
+        verticalArrangement = Arrangement.SpaceBetween,
+        content = {
 
-        Row(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .padding(horizontal = 48.dp),
-            horizontalArrangement = Arrangement.Center
-        ) {
-            repeat(pinpadViewModel.pinpadUiState.pin.length) {
-                Text(
-                    text = " * ",
-                    style = MaterialTheme.typography.displayMedium,
-                    modifier = Modifier.padding(horizontal = 4.dp),
-                    maxLines = 1
-                )
-            }
-        }
-
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(3),
-            contentPadding = PaddingValues(48.dp, 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            items(pinpadViewModel.pinpadButtonsUiEvent) { buttonUiEvent ->
-                val buttonUiState = when (buttonUiEvent) {
-                    is PinpadButtonUiEvent.WhenNumberIsDigested -> buttonUiEvent.buttonUiState
-                    is PinpadButtonUiEvent.WhenCancelIsPressed -> buttonUiEvent.buttonUiState
-                    is PinpadButtonUiEvent.WhenDeleteIsPressed -> buttonUiEvent.buttonUiState
-                    is PinpadButtonUiEvent.WhenConfirmIsPressed -> TODO()
-                }
-
-                Button(
-                    onClick = {
-                        pinpadViewModel.onPinpadButtonUiEvent(buttonUiEvent, onCancel)
-                    },
-                    modifier = Modifier.aspectRatio(1f),
-                    enabled = buttonUiState.isEnabled && confirmingPinStepUiState != ConfirmingPinStepUiState.Confirming,
-                    shape = CircleShape,
-                    colors = if (buttonUiEvent is PinpadButtonUiEvent.WhenNumberIsDigested) {
-                        ButtonDefaults.buttonColors()
-                    } else {
-                        ButtonDefaults.buttonColors(
-                            containerColor = Color.DarkGray,
-                            contentColor = Color.White
-                        )
-                    }
-                ) {
-                    Text(
-                        text = buttonUiState.value,
-                        style = MaterialTheme.typography.headlineLarge,
+            Row(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(horizontal = 48.dp),
+                horizontalArrangement = Arrangement.Center,
+                content = {
+                    repeat(
+                        times = pinpadViewModel.pinpadUiState.pin.length,
+                        action = {
+                            Text(
+                                text = " * ",
+                                style = MaterialTheme.typography.displayMedium,
+                                modifier = Modifier.padding(horizontal = 4.dp),
+                                maxLines = 1
+                            )
+                        }
                     )
                 }
-            }
-        }
+            )
 
-        ConfirmButton(
-            pinLenght = pinpadViewModel.pinpadUiState.pin.length,
-            confirmingPinStepUiState = confirmingPinStepUiState,
-            onConfirm = {
-                pinpadViewModel.onPinpadButtonUiEvent(
-                    event = PinpadButtonUiEvent.WhenConfirmIsPressed(
-                        navigateToFailedPayment, navigateToProcessPayment
-                    ),
-                    navigateTo = {}
-                )
-            }
-        )
-    }
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(3),
+                contentPadding = PaddingValues(48.dp, 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                content = {
+                    items(pinpadViewModel.pinpadButtonsUiEvent) { buttonUiEvent ->
+                        val buttonUiState = when (buttonUiEvent) {
+                            is PinpadButtonUiEvent.WhenNumberIsDigested -> buttonUiEvent.buttonUiState
+                            is PinpadButtonUiEvent.WhenCancelIsPressed -> buttonUiEvent.buttonUiState
+                            is PinpadButtonUiEvent.WhenDeleteIsPressed -> buttonUiEvent.buttonUiState
+                            is PinpadButtonUiEvent.WhenConfirmIsPressed -> TODO()
+                        }
+
+                        Button(
+                            onClick = {
+                                pinpadViewModel.onPinpadButtonUiEvent(buttonUiEvent, onCancel)
+                            },
+                            modifier = Modifier.aspectRatio(1f),
+                            enabled = buttonUiState.isEnabled && confirmingPinStepUiState != ConfirmingPinStepUiState.Confirming,
+                            shape = CircleShape,
+                            colors = if (buttonUiEvent is PinpadButtonUiEvent.WhenNumberIsDigested) {
+                                ButtonDefaults.buttonColors()
+                            } else {
+                                ButtonDefaults.buttonColors(
+                                    containerColor = Color.DarkGray,
+                                    contentColor = Color.White
+                                )
+                            }
+                        ) {
+                            Text(
+                                text = buttonUiState.value,
+                                style = MaterialTheme.typography.headlineLarge,
+                            )
+                        }
+                    }
+                }
+            )
+
+            ConfirmButton(
+                pinLenght = pinpadViewModel.pinpadUiState.pin.length,
+                confirmingPinStepUiState = confirmingPinStepUiState,
+                onConfirm = {
+                    pinpadViewModel.onPinpadButtonUiEvent(
+                        event = PinpadButtonUiEvent.WhenConfirmIsPressed(
+                            navigateToFailedPayment, navigateToProcessPayment
+                        ),
+                        navigateTo = {}
+                    )
+                }
+            )
+        }
+    )
 }
 
 @Composable
@@ -183,11 +190,12 @@ fun ConfirmButton(
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary
-        )
-    ) {
-        Text(
-            text = animatedText,
-            style = MaterialTheme.typography.headlineSmall
-        )
-    }
+        ),
+        content = {
+            Text(
+                text = animatedText,
+                style = MaterialTheme.typography.headlineSmall
+            )
+        }
+    )
 }

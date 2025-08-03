@@ -3,14 +3,13 @@ package com.soleel.paymentapp.feature.salesprocess.payment.pinpad
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.soleel.paymentapp.core.common.result.Result
 import com.soleel.paymentapp.core.common.result.asResult
 import com.soleel.paymentapp.core.model.pinpadprocess.PinBlockData
-import com.soleel.paymentapp.domain.pinpad.IPinBlockRequestUseCase
-import com.soleel.paymentapp.domain.pinpad.InvalidKSNException
+import com.soleel.paymentapp.domain.pinpad.pinblockrequest.interfaces.IPinBlockRequestUseCase
+import com.soleel.paymentapp.domain.pinpad.pinblockrequest.exception.InvalidKSNException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -69,7 +68,6 @@ sealed class PinpadButtonUiEvent {
 
 @HiltViewModel
 open class PinpadViewModel @Inject constructor(
-    private val savedStateHandle: SavedStateHandle,
     private val pinBlockRequestUseCase: IPinBlockRequestUseCase
 ) : ViewModel() {
     private var _pinpadUiState: PinpadUiState by mutableStateOf(PinpadUiState())
