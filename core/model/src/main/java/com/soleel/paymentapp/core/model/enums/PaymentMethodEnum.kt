@@ -15,31 +15,31 @@ enum class PaymentMethodEnum(
         id = 1,
         icon = R.drawable.ic_payment_method_cash,
         displayName = "Efectivo",
-        displayDescription = "Pago realizado en moneda fisica."
+        displayDescription = "Pago realizado en moneda fisica"
     ),
     CREDIT(
         id = 2,
         icon = R.drawable.ic_payment_method_credit,
         displayName = "Credito",
-        displayDescription = "Pago con tarjeta que permite seleccion de cuotas."
+        displayDescription = "Pago con tarjeta que permite cuotas"
     ),
     DEBIT(
         id = 3,
         icon = R.drawable.ic_payment_method_debit,
         displayName = "Debito",
-        displayDescription = "Pago con tarjeta de que permite seleccion de vuelto."
+        displayDescription = "Pago con tarjeta que permite vuelto"
     ),
     QR(
         id = 4,
         icon = R.drawable.ic_qr,
         displayName = "Codigo QR",
-        displayDescription = "Pago por scaneo de QR en app bancaria."
+        displayDescription = "Pago por scaneo de QR en app bancaria"
     ),
     BIOMETRIC_AUTHENTICATION(
         id = 5,
         icon = R.drawable.ic_biometric,
         displayName = "Autenticacion biometrica",
-        displayDescription = "Pago por deteccion facial."
+        displayDescription = "Pago por deteccion facial"
     );
 
     companion object {
