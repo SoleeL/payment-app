@@ -2,7 +2,7 @@ package com.soleel.paymentapp.data.payment
 
 import com.soleel.paymentapp.core.database.dao.PaymentDAO
 import com.soleel.paymentapp.core.model.base.Payment
-import com.soleel.paymentapp.data.payment.inteface.IPaymentLocalDataSource
+import com.soleel.paymentapp.data.payment.interfaces.IPaymentLocalDataSource
 import com.soleel.paymentapp.data.payment.util.toEntity
 import com.soleel.paymentapp.data.payment.util.toModel
 import kotlinx.coroutines.flow.Flow

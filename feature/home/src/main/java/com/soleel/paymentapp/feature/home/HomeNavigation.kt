@@ -61,7 +61,7 @@ import kotlinx.serialization.Serializable
 object HomeGraph
 
 fun NavGraphBuilder.homeNavigationGraph(
-    navigateToSalesProcessGraph: (totalAmount: Float) -> Unit
+    navigateToSalesProcessGraph: (totalAmount: Int) -> Unit
 ) {
     composable<HomeGraph> {
         HomeScreen(
@@ -113,7 +113,7 @@ sealed class HomeTopBarScreens<T>(val name: String, val icon: Int, val route: T)
 fun HomeScreen(
     homeViewModel: HomeViewModel = hiltViewModel(),
     navHostController: NavHostController = rememberNavController(),
-    navigateToSalesProcessGraph: (totalAmount: Float) -> Unit
+    navigateToSalesProcessGraph: (totalAmount: Int) -> Unit
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()

@@ -8,7 +8,7 @@
 ## Alta
 - [X] PaymentTypeSelection: Implementar vista y logica
 - [X] CreditInstallmentsSelection: Implementar vista y logica
-- [ ] DebitChangeSelection: Implementar vista y logica
+- [X] DebitChangeSelection: Implementar vista y logica
 - [X] ContactlessReading: Implementar vista y logica
 - [X] ContactReading: Implementar vista y logica
 - [X] Pinpad: Implementar vista y logica

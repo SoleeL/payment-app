@@ -2,7 +2,7 @@ package com.soleel.paymentapp.domain.payment
 
 import com.soleel.paymentapp.core.model.base.Payment
 import com.soleel.paymentapp.core.model.enums.PaymentMethodEnum
-import com.soleel.paymentapp.data.payment.inteface.IPaymentLocalDataSource
+import com.soleel.paymentapp.data.payment.interfaces.IPaymentLocalDataSource
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

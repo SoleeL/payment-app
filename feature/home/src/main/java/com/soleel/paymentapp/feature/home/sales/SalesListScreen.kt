@@ -32,7 +32,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.soleel.paymentapp.core.model.enums.PaymentMethodEnum
 import com.soleel.paymentapp.core.model.salelist.SaleListItemUiModel
-import com.soleel.paymentapp.core.ui.formatter.FullReadableDateFormat
 import com.soleel.paymentapp.core.ui.formatter.FullReadableDateWithHourFormat
 import com.soleel.paymentapp.core.ui.utils.LongDevicePreview
 import com.soleel.paymentapp.core.ui.utils.WithFakeSystemBars
@@ -164,13 +163,13 @@ fun SaleListItem(
 
                 Icon(
                     painter = painterResource(id = sale.paymentMethod.icon),
-                    contentDescription = sale.paymentMethod.value,
+                    contentDescription = sale.paymentMethod.displayName,
                     modifier = Modifier.size(32.dp),
                     tint = MaterialTheme.colorScheme.primary
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = sale.paymentMethod.value,
+                    text = sale.paymentMethod.displayName,
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center
                 )
