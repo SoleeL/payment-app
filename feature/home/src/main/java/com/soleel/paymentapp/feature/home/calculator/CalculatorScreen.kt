@@ -7,6 +7,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.soleel.paymentapp.core.component.NumberKeyboard
+import com.soleel.paymentapp.core.ui.utils.LongDevicePreview
+import com.soleel.paymentapp.core.ui.utils.WithFakeSystemBars
+import com.soleel.paymentapp.core.ui.utils.WithFakeTopAppBar
 import com.soleel.paymentapp.core.ui.visualtransformation.CLPCurrencyVisualTransformation
 
 
@@ -32,5 +35,25 @@ fun CalculatorScreen(
             )
         }
     )
+}
 
+@LongDevicePreview
+@Composable
+private fun CalculatorScreenLongPreview() {
+
+    val calculatorViewModel: CalculatorViewModel =
+        CalculatorViewModel()
+
+    WithFakeSystemBars(
+        content = {
+            WithFakeTopAppBar(
+                content = {
+                    CalculatorScreen(
+                        calculatorViewModel = calculatorViewModel,
+                        navigateToSalesProcessGraph = { _ -> }
+                    )
+                }
+            )
+        }
+    )
 }
